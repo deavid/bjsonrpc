@@ -1,0 +1,10 @@
+
+bjsonrpc - asyncronous Bidirectional JSON-RPC implementation over TCP/IP.
+
+Inspired by previous similar works like IRPC (deavid.github.com/irpc), and a 
+complete rewrite of jpc (http://code.google.com/p/python-jpc) 
+(jpc author is Nir Aides <nir@winpdb.org>).
+
+Licensed over 3-clause BSD license.
+
+Author: David Martinez Marti <deavidsedice@gmail.com>
