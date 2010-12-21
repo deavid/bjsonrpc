@@ -38,7 +38,7 @@ from exceptions import EofError
 
 import jsonlib as json
 
-import socket
+import socket, traceback, sys
 
 
 class Connection(object):

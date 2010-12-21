@@ -51,7 +51,7 @@ class MyHandler(bjsonrpc.BaseHandler):
 
 
 
-conn = bjsonrpc.connect(host="192.168.1.200",port=10123,handler_factory=MyHandler)
+conn = bjsonrpc.connect(host="127.0.0.1",port=10123,handler_factory=MyHandler)
 
 print conn.call.echo('Hello World!')
 total = 0
