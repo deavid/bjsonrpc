@@ -31,12 +31,21 @@
     POSSIBILITY OF SUCH DAMAGE.
 
 """
+import re
     
 class BaseHandler(object):
-    def __init__(self, conn):
-        self._conn = conn
-        self._addr = conn._addr
+    public_methods_pattern = r'^[a-z]\w+$'
+    
+    def __init__(self, connection):
+        if hasattr(connection,"_conn"): self._conn = connection._conn
+        self._conn = connection
         self._methods = {}
+        for mname in dir(self):
+            if re.match(self.public_methods_pattern,mname):
+                fn = getattr(self,mname)
+                if type(fn) is type(self.__init__):
+                    self._add_method(fn)
+            
         self._setup()
         
     def _setup(self):

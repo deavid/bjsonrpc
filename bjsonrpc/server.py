@@ -47,7 +47,7 @@ class Server(object):
             connections = []
             connidx = {}
             while True:
-                ready_to_read, ready_to_write, in_error = select.select([self._conn]+sockets,[],[],30.0)
+                ready_to_read, ready_to_write, in_error = select.select([self._conn]+sockets,[],[],3.0)
                 if not ready_to_read:
                     for c in connections:
                         try:
@@ -64,13 +64,12 @@ class Server(object):
                 
             
                 if self._conn in ready_to_read:
-                    conn, addr = self._conn.accept()
-                    sockets.append(conn)
+                    clientsck, clientaddr = self._conn.accept()
+                    sockets.append(clientsck)
             
-                    c = Connection(conn = conn, addr = addr, handler_factory = self._handler)
-                    connidx[conn.fileno()] = c
+                    c = Connection(socket = clientsck, address = clientaddr, handler_factory = self._handler)
+                    connidx[clientsck.fileno()] = c
                     connections.append(c)
-                    continue # improve accept conn performance 
                 
                 for sck in ready_to_read:
                     fileno = sck.fileno()
@@ -80,7 +79,7 @@ class Server(object):
                         c.dispatch_until_empty()
                     except EofError:
                         c.close()
-                        sockets.remove(c._conn)
+                        sockets.remove(c._sck)
                         connections.remove(c)
                         #print "Closing client conn."
                     

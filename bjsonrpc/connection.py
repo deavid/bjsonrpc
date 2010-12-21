@@ -40,31 +40,81 @@ import jsonlib as json
 
 import socket, traceback, sys
 
+class RemoteObject(object):
+    def __init__(self,conn,obj):
+        self._conn = conn
+        self.name = obj['__remoteobject__']
+        
+        self.call = Proxy(self,sync_type=0)
+        self.method = Proxy(self,sync_type=1)
+        self.notify = Proxy(self,sync_type=2)
+        
+    def _proxy(self, sync_type, name, args, kwargs):
+        return self._conn._proxy(sync_type, "%s.%s" % (self.name,name), args, kwargs)
+        
 
 class Connection(object):
-    def __init__(self, conn, addr = None, handler_factory = None):
+    def __init__(self, socket, address = None, handler_factory = None):
+        self._debug_socket = False
         self._buffer = ''
-        self._conn = conn
-        self._addr = addr
+        self._sck = socket
+        self._address = address
         self._handler = handler_factory 
         if self._handler: self.handler = self._handler(self)
-        self._id = 1
+        self._id = 0
         self._requests = {}
+        self._objects = {}
 
         self.call = Proxy(self,sync_type=0)
         self.method = Proxy(self,sync_type=1)
         self.notify = Proxy(self,sync_type=2)
         
+    def getID(self):
+        self._id += 1
+        return self._id 
+        
+    def load_object(self,obj):
+        # dict loaded.
+        if '__remoteobject__' in obj: return RemoteObject(self,obj)
+        return obj
+
+    def dump_object(self,obj):
+        # object of unknown type
+        if not isinstance(obj,object): raise TypeError
+        if not hasattr(obj,'__class__'): raise TypeError
+        if not hasattr(obj,'_get_method'): raise TypeError
+        # An object can be remotely called if :
+        #  - it derives from object (new-style classes)
+        #  - it is an instance
+        #  - has an internal function _get_method to handle remote calls
+        
+        
+        classname = obj.__class__.__name__
+        instancename = "%s_%04x" % (classname.lower(),self.getID())
+        self._objects[instancename] = obj
+        return { '__remoteobject__' : instancename }
+
+
 
     def _dispatch_method(self, request):
         req_id = request.get("id",None)
         req_method = request.get("method")
         req_args = request.get("params",[])
-        req_kwargs = request.get("kwparams",{})
+        if type(req_args) is dict: 
+            req_kwargs = req_args
+            req_args = []
+        else:
+            req_kwargs = request.get("kwparams",{})
+            
         if req_kwargs: req_kwargs = dict((str(k), v) for k, v in req_kwargs.iteritems())
-        
+        if '.' in req_method: # local-object.
+            objectname, req_method = req_method.split('.')[:2]
+            if objectname not in self._objects: raise ValueError, "Invalid object identifier"
+            req_object = self._objects[objectname]
+        else:
+            req_object = self.handler
         try:
-            req_function = self.handler._get_method(req_method)
+            req_function = req_object._get_method(req_method)
             result = req_function(*req_args, **req_kwargs)
         except:
             print
@@ -88,13 +138,26 @@ class Connection(object):
                 
     def read_and_dispatch(self,timeout=None):
         try:
-            self._conn.settimeout(timeout)
+            self._sck.settimeout(timeout)
             data = self.read()
         finally:
-            self._conn.settimeout(None)
+            self._sck.settimeout(None)
             
         if not data: return False 
-        item = json.loads(data)       
+        item = json.loads(data,self)  
+        if type(item) is list: # batch call
+            for i in item: self.dispatch_item(i)
+        elif type(item) is dict: # std call
+            self.dispatch_item(item)
+        else: # Unknown format :-(
+            print "Received message with unknown format type:" , type(item)
+            return False
+        return True
+        
+            
+             
+    def dispatch_item(self,item):
+        assert(type(item) is dict)
         response = None
         if 'id' not in item: item['id'] = None
         
@@ -112,7 +175,7 @@ class Connection(object):
             
         if response is not None:
             try:
-                self.write(json.dumps(response))
+                self.write(json.dumps(response,self))
             except TypeError:
                 print "response was:", repr(response)
                 raise
@@ -134,15 +197,16 @@ class Connection(object):
         
         data['method'] = name
 
-        if sync_type in [0,1]:
-            data['id'] = self._id
-            self._id += 1
+        if sync_type in [0,1]: data['id'] = self.getID()
             
         if len(args) > 0: data['params'] = args
-        if len(kwargs) > 0: data['kwparams'] = kargs
+        if len(kwargs) > 0: 
+            if len(args) == 0: data['params'] = kwargs
+            else: data['kwparams'] = kwargs
+            
             
         if sync_type == 2: # short-circuit for speed!
-            self.write(json.dumps(data))
+            self.write(json.dumps(data,self))
             return None
                     
         req = Request(self, data)
@@ -153,66 +217,26 @@ class Connection(object):
 
     def close(self):
         try:
-            self._conn.shutdown(socket.SHUT_RDWR)
+            self._sck.shutdown(socket.SHUT_RDWR)
         except socket.error:
             pass
-        self._conn.close()
+        self._sck.close()
     
-    def write_prefixed(self, data):
-        """Write length prefixed data to socket."""
-
-        length = len(data)
-        while length >= 255:
-            l = chr(255)
-            out = data[:255]
-            self._conn.sendall(l + data)
-            data = data[255:]
-            length = len(data)
-        
-        l = chr(length)
-
-        self._conn.sendall(l + data)
-
-
-    def read_prefixed(self):
-        """Read length prefixed data from socket."""
-        buf = []
-        end = False
-        while not end:
-            slength = self._read2(1)
-            if slength == "": raise EofError(0)
-            length = ord(slength)
-            if length < 255: end = True
-            buf.append(self._read2(length))
-            
-        return "".join(buf)
-        
     def write_line(self, data):
         """Write line to socket"""
         assert('\n' not in data)
-        self._conn.sendall(data + '\n')
+        if self._debug_socket: print ">", data
+        self._sck.sendall(data + '\n')
 
 
     def read_line(self):
         """Read line from socket."""
-        return self._readn()
+        data = self._readn()
+        if self._debug_socket: print "<", data
+        return data
 
     write = write_line 
     read = read_line 
-
-    def _read2(self, length):
-        buffer = self._buffer
-        buflen = len(buffer)
-        while buflen < length:
-            data = self._conn.recv(length-buflen)
-            if not data:
-                raise EofError(len(buffer))
-            buffer += data
-            buflen = len(buffer)
-            
-
-        self._buffer = buffer[length:]
-        return buffer[: length]
 
     def _readn(self):
         buffer = self._buffer
@@ -220,7 +244,7 @@ class Connection(object):
         #print "read..."
         while pos == -1:
             try:
-                data = self._conn.recv(2048)
+                data = self._sck.recv(2048)
             except IOError:
                 return ''
             except:

@@ -1,7 +1,7 @@
 """
-    bjson/jsonlib.py
+    example2-client.py
     
-    Asynchronous Bidirectional JSON-RPC protocol implementation over TCP/IP
+    Example Client using alternative jpc library.
     
     Copyright (c) 2010 David Martinez Marti
     All rights reserved.
@@ -32,19 +32,32 @@
 
 """
 
-try:
-    import simplejson as j
-except ImportError:
-    import json as j
-except ImportError:
-    print "FATAL: No suitable json library found!"
-    raise
 
+import sys
+sys.path.insert(0,"../") # prefer local version
+import bjsonrpc
 
-def dumps(argobj, conn):
+import time
 
-    return j.dumps(argobj, separators = (',', ':'), default=conn.dump_object)
+conn = bjsonrpc.connect(host="127.0.0.1",port=10123)
+conn._debug_socket = True
+ch1 = conn.call.newChronometer()
+ch2 = conn.call.newChronometer()
 
-def loads(argobj, conn):
-
-    return j.loads(argobj, object_hook=conn.load_object)
+ch1.call.start()
+time.sleep(0.2)
+l1, l2 = ch1.method.lapse(), ch2.method.lapse(); print l1.value, l2.value
+time.sleep(0.2)
+ch2.call.start()
+time.sleep(0.2)
+l1, l2 = ch1.method.lapse(), ch2.method.lapse(); print l1.value, l2.value
+time.sleep(0.2)
+ch1.call.stop()
+time.sleep(0.4)
+l1, l2 = ch1.method.lapse(), ch2.method.lapse(); print l1.value, l2.value
+time.sleep(0.4)
+l1, l2 = ch1.method.lapse(), ch2.method.lapse(); print l1.value, l2.value
+ch2.call.stop()
+l1, l2 = ch1.method.lapse(), ch2.method.lapse(); print l1.value, l2.value
+time.sleep(0.2)
+l1, l2 = ch1.method.lapse(), ch2.method.lapse(); print l1.value, l2.value

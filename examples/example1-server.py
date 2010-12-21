@@ -37,17 +37,42 @@ sys.path.insert(0,"../") # prefer local version
 import bjsonrpc
 
 import random
+import time
+
+class Chronometer(bjsonrpc.BaseHandler):
+    def _setup(self):
+        self._begin = 0
+        self._end = 0
+        self._state = 0 # 0 is off, 1 is on.
+
+    def begin(self): return self._begin
+    def end(self): 
+        if self._state == 0: return self._end
+        else: return time.time()
+            
+    def start(self):
+        self._begin = time.time()
+        self._state = 1
+    
+    def stop(self):
+        self._end = time.time()
+        self._state = 0
+        
+    def lapse(self):
+        return self.end() - self.begin()
+        
+        
+        
 
 
 class MyHandler(bjsonrpc.BaseHandler):
     def _setup(self):
-        super(type(self),self)._setup()
-        self._add_method(self.addvalue,self.getrandom)
-        self._add_method(self.gettotal,self.getcount)
-        self._add_method(self.echo)
         self.value_count = 0
         self.value_total = 0
     
+    def newChronometer(self):
+        return Chronometer(self)
+        
     def addvalue(self,number):
         n = float(number)
         self.value_count += 1
@@ -63,7 +88,6 @@ class MyHandler(bjsonrpc.BaseHandler):
     def getcount(self):
         return self.value_count
         
-    
     def echo(self, string):
         #print self._addr 
         #print self._conn 

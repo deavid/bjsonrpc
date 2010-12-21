@@ -41,10 +41,6 @@ import random
 import time
 
 class MyHandler(bjsonrpc.BaseHandler):
-    def _setup(self):
-        super(type(self),self)._setup()
-        self._add_method(self.notify)
-        
     def notify(self,text):
         print "Notify:", text
         
@@ -53,49 +49,52 @@ class MyHandler(bjsonrpc.BaseHandler):
 
 conn = bjsonrpc.connect(host="127.0.0.1",port=10123,handler_factory=MyHandler)
 
-print conn.call.echo('Hello World!')
-total = 0
-count = 0
-valuecount = 10000
-start = time.time()
-for i in range(valuecount):
-    randval = random.uniform(-100,100)
-    total += randval
-    count += 1
-    conn.notify.addvalue(randval)
+def benchmark():
+    print conn.call.echo('Hello World!')
+    total = 0
+    count = 0
+    valuecount = 10000
+    start = time.time()
+    for i in range(valuecount):
+        randval = random.uniform(-100,100)
+        total += randval
+        count += 1
+        conn.notify.addvalue(randval)
 
-rtotal, rcount = conn.method.gettotal(), conn.method.getcount()
-print total,count
-print rtotal.value, rcount.value
+    rtotal, rcount = conn.method.gettotal(), conn.method.getcount()
+    print total,count
+    print rtotal.value, rcount.value
 
-end = time.time()
-lapse = float(end-start)
-print "Notify Total: %.2fs   %.2f reg/s" % (lapse, valuecount/lapse)
+    end = time.time()
+    lapse = float(end-start)
+    print "Notify Total: %.2fs   %.2f reg/s" % (lapse, valuecount/lapse)
     
     
-valuecount = 3000
-start = time.time()
-values = []
-for i in range(valuecount):
-    values.append(conn.method.getrandom())
+    valuecount = 3000
+    start = time.time()
+    values = []
+    for i in range(valuecount):
+        values.append(conn.method.getrandom())
 
-print sum([x.value for x in values])
-end = time.time()
-lapse = float(end-start)
-print "Method Total: %.2fs   %.2f reg/s" % (lapse, valuecount/lapse)
+    print sum([x.value for x in values])
+    end = time.time()
+    lapse = float(end-start)
+    print "Method Total: %.2fs   %.2f reg/s" % (lapse, valuecount/lapse)
     
 
-valuecount = 500
-start = time.time()
-values = []
-for i in range(valuecount):
-    values.append(conn.call.getrandom())
+    valuecount = 500
+    start = time.time()
+    values = []
+    for i in range(valuecount):
+        values.append(conn.call.getrandom())
 
-print sum(values)
-end = time.time()
-lapse = float(end-start)
-print "Call Total: %.2fs   %.2f reg/s" % (lapse, valuecount/lapse)
+    print sum(values)
+    end = time.time()
+    lapse = float(end-start)
+    print "Call Total: %.2fs   %.2f reg/s" % (lapse, valuecount/lapse)
     
 
     
+
+benchmark()
 

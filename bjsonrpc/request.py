@@ -49,7 +49,7 @@ class Request(object):
             assert(self.id not in self.conn._requests)
             self.conn._requests[self.id] = self
             
-        data = json.dumps(self.data)
+        data = json.dumps(self.data,self.conn)
 
         self.conn.write(data)
         
