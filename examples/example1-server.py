@@ -69,6 +69,9 @@ class MyList(bjsonrpc.BaseHandler):
         
     def add(self,item):
         self._list.append(item)
+
+    def addlist(self,itemlist):
+        self._list += itemlist
         
     def items(self, start = None, end = None):
         return self._list[start:end]

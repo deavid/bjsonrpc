@@ -38,26 +38,48 @@ sys.path.insert(0,"../") # prefer local version
 import bjsonrpc
 
 import time
+import random
 
 conn = bjsonrpc.connect(host="127.0.0.1",port=10123)
 conn._debug_socket = True
 ch1 = conn.call.newChronometer()
 ch2 = conn.call.newChronometer()
+list1 = conn.call.newList()
+list2 = conn.call.newList()
 
 ch1.call.start()
-time.sleep(0.2)
-l1, l2 = ch1.method.lapse(), ch2.method.lapse(); print l1.value, l2.value
-time.sleep(0.2)
-ch2.call.start()
-time.sleep(0.2)
-l1, l2 = ch1.method.lapse(), ch2.method.lapse(); print l1.value, l2.value
-time.sleep(0.2)
-ch1.call.stop()
-time.sleep(0.4)
-l1, l2 = ch1.method.lapse(), ch2.method.lapse(); print l1.value, l2.value
-time.sleep(0.4)
-l1, l2 = ch1.method.lapse(), ch2.method.lapse(); print l1.value, l2.value
-ch2.call.stop()
-l1, l2 = ch1.method.lapse(), ch2.method.lapse(); print l1.value, l2.value
-time.sleep(0.2)
-l1, l2 = ch1.method.lapse(), ch2.method.lapse(); print l1.value, l2.value
+conn._debug_socket = False
+print "ch1 start."
+time.sleep(0.05); print "  %.4f\t%.4f" % (ch1.call.lapse(), ch2.call.lapse())
+time.sleep(0.05)
+ch2.call.start(); print "ch2 start."
+time.sleep(0.05); print "  %.4f\t%.4f" % (ch1.call.lapse(), ch2.call.lapse())
+time.sleep(0.05); 
+ch1.call.stop();  print "ch1 stop."
+time.sleep(0.05); print "  %.4f\t%.4f" % (ch1.call.lapse(), ch2.call.lapse())
+time.sleep(0.15); print "  %.4f\t%.4f" % (ch1.call.lapse(), ch2.call.lapse())
+ch2.call.stop();  print "ch2 stop."
+time.sleep(0.05); print "  %.4f\t%.4f" % (ch1.call.lapse(), ch2.call.lapse())
+time.sleep(0.05); print "  %.4f\t%.4f" % (ch1.call.lapse(), ch2.call.lapse())
+
+print "---"
+
+for i in range(10):
+    list1.notify.add(i)
+    
+conn._debug_socket = True
+list2.notify.addlist([random.randint(0,100) for i in range(30)])    
+
+# Get the two list of items and totals at same time.
+m_items1 = list1.method.items(5,10) 
+m_items2 = list2.method.items(5,10)
+m_sum1 = list1.method.sum()
+m_sum2 = list2.method.sum()
+
+# .value method waits if we haven't received yet the response.
+print m_sum1.value, m_sum2.value
+print sum(m_items1.value), sum(m_items2.value)
+
+del list1
+del list2
+

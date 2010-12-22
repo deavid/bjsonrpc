@@ -62,6 +62,7 @@ class RemoteObject(object):
 class Connection(object):
     def __init__(self, socket, address = None, handler_factory = None):
         self._debug_socket = False
+        self._debug_dispatch = False
         self._buffer = ''
         self._sck = socket
         self._address = address
@@ -130,9 +131,10 @@ class Connection(object):
                 req_function = req_object._get_method(req_method)
                 result = req_function(*req_args, **req_kwargs)
         except:
-            print
-            print traceback.format_exc()
-            print
+            if self._debug_dispatch:
+                print
+                print traceback.format_exc()
+                print
             if req_id is not None: 
                 return {'result': None, 'error': repr(sys.exc_info()[1]), 'id': req_id}
         
@@ -238,14 +240,14 @@ class Connection(object):
     def write_line(self, data):
         """Write line to socket"""
         assert('\n' not in data)
-        if self._debug_socket: print ">", data
+        if self._debug_socket: print "<:%d:" % len(data), data
         self._sck.sendall(data + '\n')
 
 
     def read_line(self):
         """Read line from socket."""
         data = self._readn()
-        if self._debug_socket: print "<", data
+        if self._debug_socket: print ">:%d:" % len(data), data
         return data
 
     write = write_line 
