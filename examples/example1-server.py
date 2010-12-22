@@ -63,6 +63,28 @@ class Chronometer(bjsonrpc.BaseHandler):
         
         
         
+class MyList(bjsonrpc.BaseHandler):
+    def _setup(self):
+        self._list = []
+        
+    def add(self,item):
+        self._list.append(item)
+        
+    def items(self, start = None, end = None):
+        return self._list[start:end]
+    
+    def remove(self,item):
+        self._list.remove(item)
+        
+    def clear(self):
+        self._list = []
+    
+    def sum(self): return sum(self._list)
+    def min(self): return min(self._list)
+    def max(self): return max(self._list)
+        
+
+
 
 
 class MyHandler(bjsonrpc.BaseHandler):
@@ -72,6 +94,10 @@ class MyHandler(bjsonrpc.BaseHandler):
     
     def newChronometer(self):
         return Chronometer(self)
+
+    def newList(self):
+        return MyList(self)
+    
         
     def addvalue(self,number):
         n = float(number)

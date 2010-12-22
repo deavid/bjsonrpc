@@ -31,13 +31,18 @@
     POSSIBILITY OF SUCH DAMAGE.
 
 """
+import weakref
 
 class Proxy(object):
-    def __init__(self, conn, sync_type):
+    def __init__(self, conn, sync_type, obj = None):
         self._conn = conn
+        self._obj = obj
         self.sync_type = sync_type
 
     def __getattr__(self, name):
+        if self._obj:
+            name = "%s.%s" % (self._obj,name)
+            
         def fn(*args, **kwargs):
             return self._conn._proxy(self.sync_type, name, args, kwargs)
         return fn

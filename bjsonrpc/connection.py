@@ -45,12 +45,18 @@ class RemoteObject(object):
         self._conn = conn
         self.name = obj['__remoteobject__']
         
-        self.call = Proxy(self,sync_type=0)
-        self.method = Proxy(self,sync_type=1)
-        self.notify = Proxy(self,sync_type=2)
+        self.call = Proxy(self._conn, obj=self.name, sync_type=0)
+        self.method = Proxy(self._conn, obj=self.name, sync_type=1)
+        self.notify = Proxy(self._conn, obj=self.name, sync_type=2)
+    
+    def __del__(self):
+        self._close()
         
-    def _proxy(self, sync_type, name, args, kwargs):
-        return self._conn._proxy(sync_type, "%s.%s" % (self.name,name), args, kwargs)
+    def _close(self):
+        self.call.__delete__()
+        self.name = None
+        
+        
         
 
 class Connection(object):
@@ -110,12 +116,19 @@ class Connection(object):
         if '.' in req_method: # local-object.
             objectname, req_method = req_method.split('.')[:2]
             if objectname not in self._objects: raise ValueError, "Invalid object identifier"
-            req_object = self._objects[objectname]
+            if req_method == '__delete__': 
+                req_object = None
+                del self._objects[objectname]
+                result = None
+            else:
+                req_object = self._objects[objectname]
         else:
             req_object = self.handler
+            
         try:
-            req_function = req_object._get_method(req_method)
-            result = req_function(*req_args, **req_kwargs)
+            if req_object:
+                req_function = req_object._get_method(req_method)
+                result = req_function(*req_args, **req_kwargs)
         except:
             print
             print traceback.format_exc()
