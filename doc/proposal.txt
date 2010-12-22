@@ -1,0 +1,119 @@
+** Lots of ideas that are not covered by JSON-RPC standard.
+
+# Remote object method invocation
+curOrders = conn.call.Cursor("orders")
+--> { 'method' : 'Cursor' , 'params' : ["orders"] , 'id' : 1 }
+<-- { 'result' : { '__remoteobject__' : 'cursor_0001'}, 'id' : 1 }
+
+print curOrders.call.count()
+--> { 'method' : 'Cursor_0001.count', 'id' : 2 }
+<-- { 'result' : 115, 'id' : 2 }
+
+# Remote object reference   (function reference / object method reference ??)
+curOrders2 = conn.call.CursorCopy(curOrders)
+--> { 'method' : 'CursorCopy' , 'params' : [{ '__remotereference__' : 'cursor_0001'}] , 'id' : 3 }
+<-- { 'result' : { '__remoteobject__' : 'cursor_0002'}, 'id' : 3 }
+
+# Remote function reference 
+# -- could be used to reduce a list of 10000 elements to a simple value.
+operator = conn.call.importOperator()
+average = conn.call.reduce(operator.avg,conn.call.getScores)
+--> { 'method' : 'reduce' , 'params' : [{ '__remotereference__' : 'operator_0003.avg'},{ '__remotereference__' : 'getScores'}] , 'id' : 4 }
+<-- { 'result' : 351.126533, 'id' : 4 }
+
+
+
+
+# Binary Data representation:
+# __jsonbinary__: a slash separated chain of processes.
+#   * Chain terminators: (must finish with one of these two)
+#   -- ../hex : hexadecimal conversion/digests (200% of size)
+#   -- ../base64 : mime-base64 conversion  (133% of size)
+#   * Chain processes: (optional)
+#   -- ../compress/.. : compression using compress_method
+#   -- ../cipher/.. : Cipher data using cipher_method
+#   * Chain start: (optional, and only can be in the first element)
+#   -- json/.. : Dump a object as a json text representation 
+#   (examples)
+#   -- compress/cipher/base64 : Compress data, cipher it, and encode it with base64.
+#
+#  (optional) compress_method: may be one of:
+#             - zlib : zlib stream like gzip. (medium compression ratio, fast, compatible)
+#             - lzma : lzma stream (very high compression ratio, very slow, experimental)
+#             - lzop : lzop stream (low compression ratio, very fast, experimental)
+#
+# data: string containing the encoded binary data.
+#         *** cryptography extension follows ***
+# (optional) signature: hash of the binary data (hex digest)
+# (optional) signature_method : method used to get the hash value:
+#   -- MD5, SHA1, SHA256, ... : as standard hash
+#   -- PSK-MD5, PSK-SHA1, ... : as a private hash using the preshared key (shared secret)
+# (optional) cipher_method : method used to cipher the contents using SharedSecred as symmetric key
+#   -- AES, ... : Cipher method used to encode data.
+
+{'__jsonbinary__' : 'base64', 'data' : 'Q2aWCQ/CzEyB/7T5'}
+
+
+# JSON-RPC File Transfer Protocol:
+# Server should support worker-threads, with at least 2 threads per connection.
+# some methods could be tagged as expensive/asynchronous and server will put them in threads
+# another option is to create objects instead and these objects should use a separate thread to work.
+
+....
+# simple
+file.value = conn.method.getFile('myremotefile.odt')  # will get entire file binary data into variable
+
+# object-like
+file1 = conn.call.newFile('myremotefile.odt','r') # prepare for read
+print file1.call.read(2048)    # will print 2048 bytes of binary data
+
+# rsync-like
+fsync1 = new FileSync(conn,'myfile.odt','r') # prepare for sync read (like rsync)
+fsync2 = new FileSync(conn,'myfile.odt','w') # prepare for sync write (like rsync)
+
+# diff-patch
+filediff = conn.call.getFileDiff('previous.txt','new.txt')
+conn.method.patchFile('previous.txt', filediff)
+
+# hash support
+fhash = conn.call.sha1sum('file.txt')
+
+# hash-image support (looking for chunks, static or dynamic block sizes) (sync helper)
+fhimage = conn.call.hashImage(file='file1.csv',separators=['\t','\n'], blocksize=512,hashtype=sha1,blockwindow=1,hashbytes=3)
+# * rotates the file from separators (gives a column-ordered data instead)
+# * reads $blocksize (512) cells and calculates a hash (sha1)
+# * it joins the previous and next $blockwindow (1) blocks and recomputes a new hash. (0 means once, 1 triple, 2 five times)
+# * the final hash gets cutted at 3 bytes.
+
+# Authenticate:
+# CRA (Challenge-Response-Auth) 
+
+# plain password (plain) -- (Trusted server, trusted network) (must have a password hash stored in the server)
+# PSK (Pre-Shared Key) -- (Trusted server, untrusted network) (must have a file with same random data stored in client and server for that user)
+# PKI (Public Key Infrastucture) -- (Untrusted server, untrusted network) (must provide a certificate for that username signed from a known Certificate Authority)
+# Hash Types: MD5, SHA1, SHA256, ...
+
+# Plain
+auth = conn.call._authenticate(user="root",method="plain",passwd="123456")
+--> { 'method' : '_authenticate' , 'params' : {'user':'deavid','method':'plain','passwd':'123456'} , 'id' : 1 }
+# Server computes if it is valid ... 
+<-- { 'result' : True, 'id' : 1 }
+
+
+# PSK-SHA1  (requires cryptography)
+auth = conn.call._authenticate(user="deavid",method="PSK-SHA1")
+--> { 'method' : '_authenticate' , 'params' : {'user':'deavid','method':'PSK-SHA1'} , 'id' : 1 }
+# Server calls a client method: (request a signature)
+<-- { 'method' : '_challenge' , 'params' : {'data':'58a51436a9a33f7eae2f65ccef8da0b23d0637f9',action:'sign'} , 'id' : 1 }
+--> { 'result' : {'key':'0d3ea1451','signature':'fc558b13de09c5ed24f652010decb2d14926883a'}, 'id' : 1 }
+# Server computes if it is valid ... 
+<-- { 'result' : True, 'id' : 1 }
+
+
+
+# Common Shared Key generation/request: (Shared Secret) (cryptography extension)
+# Diffie-Hellman (D-H)  -- Creates a common shared key over untrusted network.
+
+shared = conn.get_shared_secret()
+# internally calculates "a" and "A"; p and g could be local or remote.
+# also does several calls to transmit A,p,g and to obtain B,p,g

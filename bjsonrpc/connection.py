@@ -182,8 +182,8 @@ class Connection(object):
             assert(item['id'] in self._requests)
             request = self._requests[item['id']]
             del self._requests[item['id']]
-            request.response = item
-            request.eventResponse.set() # helper for threads.
+            request.setResponse(item)
+            
         else:
             response = {'result': None, 'error': "Unknown format", 'id': item['id']}
         
