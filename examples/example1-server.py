@@ -125,4 +125,6 @@ class MyHandler(bjsonrpc.BaseHandler):
         return string
     
 
-bjsonrpc.server(handler_factory=MyHandler, port = 10123, host = "0.0.0.0").serve()
+s = bjsonrpc.server(handler_factory=MyHandler, port = 10123, host = "0.0.0.0")
+s._debug_socket = True
+s.serve()

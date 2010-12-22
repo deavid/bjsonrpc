@@ -40,6 +40,8 @@ class Server(object):
     def __init__(self, conn, handler_factory):
         self._conn = conn
         self._handler = handler_factory
+        self._debug_socket = False
+        self._debug_dispatch = False
         
     def serve(self):
         try:
@@ -69,6 +71,9 @@ class Server(object):
             
                     c = Connection(socket = clientsck, address = clientaddr, handler_factory = self._handler)
                     connidx[clientsck.fileno()] = c
+                    c._debug_socket = self._debug_socket
+                    c._debug_dispatch = self._debug_socket
+                    
                     connections.append(c)
                 
                 for sck in ready_to_read:

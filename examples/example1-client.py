@@ -1,5 +1,5 @@
 """
-    example2-client.py
+    example1-client.py
     
     Example Client using alternative jpc library.
     
