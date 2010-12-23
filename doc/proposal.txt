@@ -21,6 +21,21 @@ average = conn.call.reduce(operator.avg,conn.call.getScores)
 --> { 'method' : 'reduce' , 'params' : [{ '__functionreference__' : 'operator_0003.avg'},{ '__functionreference__' : 'getScores'}] , 'id' : 4 }
 <-- { 'result' : 351.126533, 'id' : 4 }
 
+# Remote functions
+functions = conn.call.getMethodList()
+--> { 'method' : 'getMethodList' , 'id' : 5 }
+<-- { 'result' : [{ '__remotefunction__' : 'echo'},{ '__remotefunction__' : 'newList'}], 'id' : 5 }
+# ... might be useful to pre-create functions in class (allows inspection)
+
+# computing signatures
+sig = conn.call.getMethodSignature(functions[0])
+# useful to prepopulate arguments (for interactive sessions)
+
+# type checking: avoiding classes instead of strings and so on.
+http://oakwinter.com/code/typecheck/tutorial/basics.html
+
+
+# function currying (partial or complete definition of function, postpone application)
 
 
 
