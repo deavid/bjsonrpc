@@ -11,15 +11,17 @@ print curOrders.call.count()
 
 # Remote object reference   (function reference / object method reference ??)
 curOrders2 = conn.call.CursorCopy(curOrders)
---> { 'method' : 'CursorCopy' , 'params' : [{ '__remotereference__' : 'cursor_0001'}] , 'id' : 3 }
+--> { 'method' : 'CursorCopy' , 'params' : [{ '__objectreference__' : 'cursor_0001'}] , 'id' : 3 }
 <-- { 'result' : { '__remoteobject__' : 'cursor_0002'}, 'id' : 3 }
 
 # Remote function reference 
 # -- could be used to reduce a list of 10000 elements to a simple value.
 operator = conn.call.importOperator()
 average = conn.call.reduce(operator.avg,conn.call.getScores)
---> { 'method' : 'reduce' , 'params' : [{ '__remotereference__' : 'operator_0003.avg'},{ '__remotereference__' : 'getScores'}] , 'id' : 4 }
+--> { 'method' : 'reduce' , 'params' : [{ '__functionreference__' : 'operator_0003.avg'},{ '__functionreference__' : 'getScores'}] , 'id' : 4 }
 <-- { 'result' : 351.126533, 'id' : 4 }
+
+
 
 
 

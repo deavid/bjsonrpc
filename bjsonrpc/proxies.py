@@ -45,5 +45,9 @@ class Proxy(object):
             
         def fn(*args, **kwargs):
             return self._conn._proxy(self.sync_type, name, args, kwargs)
+        fn.__name__ = name
+        fn._conn = self._conn
+        fn.sync_type = self.sync_type
+        
         return fn
         

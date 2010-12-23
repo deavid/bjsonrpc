@@ -64,7 +64,7 @@ class Request(object):
                 print "Error on callback." 
                 print traceback.format_exc()
                 
-        request.eventResponse.set() # helper for threads.
+        self.eventResponse.set() # helper for threads.
     
     def wait(self):
         while self.response is None:

@@ -37,6 +37,7 @@ from request import Request
 from exceptions import EofError
 
 import jsonlib as json
+from types import MethodType, FunctionType
 
 import socket, traceback, sys
 
@@ -83,22 +84,53 @@ class Connection(object):
     def load_object(self,obj):
         # dict loaded.
         if '__remoteobject__' in obj: return RemoteObject(self,obj)
+        if '__objectreference__' in obj: return self._objects[obj['__objectreference__']]
+        if '__functionreference__' in obj:
+            name = obj['__functionreference__']
+            if '.' in name:
+                objname,methodname = name.split('.')
+                obj = self._objects[objname]
+            else:
+                obj = self.handler
+                methodname = name
+            method = obj._get_method(methodname)
+            return method
+            
+        
         return obj
 
     def dump_object(self,obj):
         # object of unknown type
+        if type(obj) is FunctionType or type(obj) is MethodType :
+            conn = getattr(obj,'_conn',None)
+            if conn != self: raise TypeError
+            return self.dump_functionreference(obj)
+            
         if not isinstance(obj,object): raise TypeError
         if not hasattr(obj,'__class__'): raise TypeError
-        if not hasattr(obj,'_get_method'): raise TypeError
+        if isinstance(obj,RemoteObject): return self.dump_objectreference(obj)
+        if hasattr(obj,'_get_method'): return self.dump_remoteobject(obj)
+        raise TypeError
+
+    def dump_functionreference(self,obj):
+        return { '__functionreference__' : obj.__name__ }
+
+    def dump_objectreference(self,obj):
+        return { '__objectreference__' : obj.name }
+        
+    def dump_remoteobject(self,obj):
         # An object can be remotely called if :
         #  - it derives from object (new-style classes)
         #  - it is an instance
         #  - has an internal function _get_method to handle remote calls
-        
-        
-        classname = obj.__class__.__name__
-        instancename = "%s_%04x" % (classname.lower(),self.getID())
-        self._objects[instancename] = obj
+        if not hasattr(obj,'__remoteobjects__'): obj.__remoteobjects__ = {}
+        if self in obj.__remoteobjects__:
+            instancename = obj.__remoteobjects__[self] 
+        else:
+            classname = obj.__class__.__name__
+            instancename = "%s_%04x" % (classname.lower(),self.getID())
+            self._objects[instancename] = obj
+            obj.__remoteobjects__[self] = instancename
         return { '__remoteobject__' : instancename }
 
 
