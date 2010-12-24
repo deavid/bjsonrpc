@@ -35,8 +35,17 @@ sig = conn.call.getMethodSignature(functions[0])
 http://oakwinter.com/code/typecheck/tutorial/basics.html
 
 
-# function currying (partial or complete definition of function, postpone application)
+# function curriing (partial or complete definition of function, postpone application)
 
+
+# saving/sharing object references across connections:
+list1 = conn.call.newList()
+list1.call.addlist([1,2,3,4])
+id_list1 = list1.call.getID()
+(client loses connection and reconnects soon)
+list1 = conn.call.newList(id_list1) 
+print list1.call.items()
+[1,2,3,4]
 
 
 
