@@ -2,10 +2,20 @@ bjsonrpc Application Programming Interface
 ==============================================
 
 .. module:: bjsonrpc
+
+bjsonrpc provides two helper functions to easily create 
+a server or a connection, linked to a socket.
     
 .. autofunction:: createserver
 
 .. autofunction:: connect
+::
+
+    import bjsonrpc
+    
+    conn = bjson.connect(host="rpc.host.com",port=5000) 
+
+
 
 bjsonrpc.server module
 ------------------------
