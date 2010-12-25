@@ -31,7 +31,7 @@
     POSSIBILITY OF SUCH DAMAGE.
 
 """
-import weakref
+# import weakref
 
 class Proxy(object):
     def __init__(self, conn, sync_type, obj = None):

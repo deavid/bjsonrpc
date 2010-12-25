@@ -13,6 +13,8 @@
 
 import sys, os
 
+sys.path.insert(0,"..")
+
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
@@ -31,7 +33,7 @@ templates_path = ['sphinxtemplates']
 source_suffix = '.rst'
 
 # The encoding of source files.
-#source_encoding = 'utf-8'
+source_encoding = 'utf-8'
 
 # The master toctree document.
 master_doc = 'index'
