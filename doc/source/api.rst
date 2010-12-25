@@ -1,30 +1,64 @@
-.. automodule:: bjsonrpc
-   :members:
-   :undoc-members:
-   :inherited-members:
+bjsonrpc Application Programming Interface
+==============================================
 
-.. automodule:: bjsonrpc.request
-   :members:
-   :undoc-members:
-   :inherited-members:
-   :show-inheritance:
+.. module:: bjsonrpc
+    
+.. autofunction:: createserver
 
-.. automodule:: bjsonrpc.proxies
-   :members:
-   :undoc-members:
-   :inherited-members:
-   :show-inheritance:
+.. autofunction:: connect
 
-.. automodule:: bjsonrpc.jsonlib
-   :members:
-   :undoc-members:
-   :inherited-members:
-   :show-inheritance:
+bjsonrpc.server module
+------------------------
+.. autoclass:: bjsonrpc.server.Server
+    :members:
+    :undoc-members: 
+    :inherited-members:
 
-.. automodule:: bjsonrpc.exceptions
-   :members:
-   :undoc-members:
-   :inherited-members:
-   :show-inheritance:
+bjsonrpc.connection module
+--------------------------
+.. autoclass:: bjsonrpc.connection.Connection
+    :members:
+    :undoc-members: 
+    :inherited-members:
+    
+.. autoclass:: bjsonrpc.connection.RemoteObject
+    :members:
+    :undoc-members: 
+    :inherited-members:
 
+bjsonrpc.request module
+------------------------
+.. autoclass:: bjsonrpc.request.Request
+    :members:
+    :undoc-members: 
+    :inherited-members:
+    
+bjsonrpc.handlers module
+------------------------
+.. autoclass:: bjsonrpc.handlers.BaseHandler
+    :members:
+    :undoc-members: 
+    :inherited-members:
+    
+.. autoclass:: bjsonrpc.handlers.NullHandler
+    :members:
+    :undoc-members: 
+    :inherited-members:
+    
+bjsonrpc.proxies module
+------------------------    
+.. autoclass:: bjsonrpc.proxies.Proxy
+    :members:
+    :undoc-members: 
+    :inherited-members:
 
+bjsonrpc.jsonlib module
+------------------------    
+.. autofunction:: bjsonrpc.jsonlib.dumps
+    
+.. autofunction:: bjsonrpc.jsonlib.loads
+    
+bjsonrpc.exceptions module
+--------------------------    
+.. autoexception:: bjsonrpc.exceptions.EofError
+.. autoexception:: bjsonrpc.exceptions.ServerError

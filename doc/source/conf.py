@@ -108,7 +108,7 @@ html_theme = 'default'
 #html_title = None
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
-#html_short_title = None
+#html_short_title = "bjsonrpc <release> docs"
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
@@ -130,7 +130,7 @@ html_static_path = ['sphinxstatic']
 
 # If true, SmartyPants will be used to convert quotes and dashes to
 # typographically correct entities.
-#html_use_smartypants = True
+html_use_smartypants = True
 
 # Custom sidebar templates, maps document names to template names.
 #html_sidebars = {}

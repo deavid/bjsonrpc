@@ -5,7 +5,7 @@
 
 Welcome to bjsonrpc's documentation!
 ====================================
-
+ 
 Contents:
 
 .. toctree::
