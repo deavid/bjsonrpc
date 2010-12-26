@@ -43,9 +43,21 @@ class Server(object):
         each socket connected to it.
         
         Use the *Server.serve()* method to start accepting connections.
+        
+        Parameters:
+        
+        **lstsck**
+            Listening socket to watch for incoming connections. Must be an instance
+            of *socket.socket* or something compatible, and must to be already
+            listening for new connections in the desired port.
+            
+        **handler_factory**
+            Class (object type) to instantiate to publish methods for incoming
+            connections. Should be an inherited class of *bjsonrpc.handlers.BaseHandler*
+            
     """
-    def __init__(self, conn, handler_factory):
-        self._conn = conn
+    def __init__(self, lstsck, handler_factory):
+        self._lstsck = lstsck
         self._handler = handler_factory
         self._debug_socket = False
         self._debug_dispatch = False
@@ -57,6 +69,8 @@ class Server(object):
             When is set to true, each new connection will have it set to true, 
             and every data sent or received by the socket will be printed to
             stdout.
+            
+            By default is set to *False*
         """
         r = self._debug_socket 
         if type(value) is bool: self._debug_socket = value
@@ -69,6 +83,8 @@ class Server(object):
             When is set to true, each new connection will have it set to true, 
             and every error produced by client connections will be printed to
             stdout.
+            
+            By default is set to *False*
         """
         r = self._debug_dispatch 
         if type(value) is bool: self._debug_dispatch = value
@@ -89,7 +105,7 @@ class Server(object):
             connections = []
             connidx = {}
             while True:
-                ready_to_read, ready_to_write, in_error = select.select([self._conn]+sockets,[],[],3.0)
+                ready_to_read, ready_to_write, in_error = select.select([self._lstsck]+sockets,[],[],3.0)
                 if not ready_to_read:
                     for c in connections:
                         try:
@@ -105,8 +121,8 @@ class Server(object):
                     continue
                 
             
-                if self._conn in ready_to_read:
-                    clientsck, clientaddr = self._conn.accept()
+                if self._lstsck in ready_to_read:
+                    clientsck, clientaddr = self._lstsck.accept()
                     sockets.append(clientsck)
             
                     c = Connection(socket = clientsck, address = clientaddr, handler_factory = self._handler)
@@ -131,6 +147,6 @@ class Server(object):
 
         finally:
             for c in connections: c.close()
-            self._conn.shutdown(socket.SHUT_RDWR)
-            self._conn.close()
+            self._lstsck.shutdown(socket.SHUT_RDWR)
+            self._lstsck.close()
         

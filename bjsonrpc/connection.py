@@ -42,6 +42,57 @@ from types import MethodType, FunctionType
 import socket, traceback, sys
 
 class RemoteObject(object):
+    """
+        Represents a object in the server-side (or client-side when speaking from
+        the point of view of the server) . It remembers its name in the server-side
+        to allow calls to the original object.
+        
+        Parameters:
+        
+        **conn**
+            Connection object which holds the socket to the other end 
+            of the communications
+        
+        **obj**
+            JSON object (Python dictionary) holding the values recieved.
+            It is used to retrieve the properties to create the remote object.
+            (Initially only used to get object name)
+            
+        Example::
+        
+            list = conn.call.newList()
+            for i in range(10): list.notify.add(i)
+            
+            print list.call.getitems()
+        
+    """
+    
+    name = None 
+    """ 
+        Name of the object in the server-side. 
+    """
+    
+    call = None 
+    """ 
+        Synchronous Proxy. It forwards your calls to it to the other end, waits
+        the response and returns the value.
+    """
+    
+    method = None 
+    """ 
+        Asynchronous Proxy. It forwards your calls to it to the other end and
+        inmediatelly returns a *request.Request* instance.
+    """
+    
+    notify = None 
+    """ 
+        Notification Proxy. It forwards your calls to it to the other end and
+        tells the server to not response even if there's any error in the call.
+        
+        Returns *None*.
+    """
+    
+    
     def __init__(self,conn,obj):
         self._conn = conn
         self.name = obj['__remoteobject__']
@@ -57,17 +108,58 @@ class RemoteObject(object):
         self.call.__delete__()
         self.name = None
         
+    def close(self):
+        """
+            Closes/deletes the remote object. The server may or may not delete
+            it at this time, but after this call we don't longer have any access to it.
+            
+            This method is automatically called when Python deletes this instance.
+        """
+        return self._close()
         
         
 
 class Connection(object):
     """ 
-    Creates a **connection** to a peer bounded to a connected socket::
-    
-        import bjson
+        Represents a communiation tunnel between two parties.
         
+        Parameters:
+        
+        **socket**
+            Connected socket to use. Should be an instance of *socket.socket* or
+            something compatible.
+        
+        **address**
+            Address of the other peer in (host,port) form. It is only used to 
+            inform handlers about the peer address.
+        
+        **handler_factory**
+            Class type inherited from BaseHandler which holds the public methods.
+            It defaults to *NullHandler* meaning no public methods will be 
+            avaliable to the other end.
         
     """
+    
+    call = None 
+    """ 
+        Synchronous Proxy. It forwards your calls to it to the other end, waits
+        the response and returns the value.
+    """
+    
+    method = None 
+    """ 
+        Asynchronous Proxy. It forwards your calls to it to the other end and
+        inmediatelly returns a *request.Request* instance.
+    """
+    
+    notify = None 
+    """ 
+        Notification Proxy. It forwards your calls to it to the other end and
+        tells the server to not response even if there's any error in the call.
+        
+        Returns *None*.
+    """
+    
     def __init__(self, socket, address = None, handler_factory = None):
         self._debug_socket = False
         self._debug_dispatch = False
@@ -85,11 +177,29 @@ class Connection(object):
         self.notify = Proxy(self,sync_type=2)
         
     def getID(self):
+        """
+            Retrieves a new ID counter. Each connection has a exclusive ID counter.
+            
+            It is mainly used to create internal id's for calls.
+        """
         self._id += 1
         return self._id 
         
     def load_object(self,obj):
-        # dict loaded.
+        """
+            Helper function for JSON loads. Given a dictionary (javascript object) returns
+            an apropiate object (a specific class) in certain cases.
+            
+            It is mainly used to convert JSON hinted classes back to real classes.
+            
+            Parameters:
+            
+            **obj**
+                Dictionary-like object to test.
+                
+            **(return value)**
+                Either the same dictionary, or a class representing that object.
+        """
         if '__remoteobject__' in obj: return RemoteObject(self,obj)
         if '__objectreference__' in obj: return self._objects[obj['__objectreference__']]
         if '__functionreference__' in obj:
@@ -107,25 +217,41 @@ class Connection(object):
         return obj
 
     def dump_object(self,obj):
+        """
+            Helper function to convert classes and functions to JSON objects.
+            
+            Given a incompatible object called *obj*, dump_object returns a 
+            JSON hinted object that represents the original parameter.
+            
+            Parameters:
+            
+            **obj**
+                Object, class, function,etc which is incompatible with JSON 
+                serialization.
+                
+            **(return value)**
+                A valid serialization for that object using JSON class hinting.
+                
+        """
         # object of unknown type
         if type(obj) is FunctionType or type(obj) is MethodType :
             conn = getattr(obj,'_conn',None)
             if conn != self: raise TypeError
-            return self.dump_functionreference(obj)
+            return self._dump_functionreference(obj)
             
         if not isinstance(obj,object): raise TypeError
         if not hasattr(obj,'__class__'): raise TypeError
-        if isinstance(obj,RemoteObject): return self.dump_objectreference(obj)
-        if hasattr(obj,'_get_method'): return self.dump_remoteobject(obj)
+        if isinstance(obj,RemoteObject): return self._dump_objectreference(obj)
+        if hasattr(obj,'_get_method'): return self._dump_remoteobject(obj)
         raise TypeError
 
-    def dump_functionreference(self,obj):
+    def _dump_functionreference(self,obj):
         return { '__functionreference__' : obj.__name__ }
 
-    def dump_objectreference(self,obj):
+    def _dump_objectreference(self,obj):
         return { '__objectreference__' : obj.name }
         
-    def dump_remoteobject(self,obj):
+    def _dump_remoteobject(self,obj):
         # An object can be remotely called if :
         #  - it derives from object (new-style classes)
         #  - it is an instance
@@ -181,6 +307,15 @@ class Connection(object):
         return {'result': result, 'error': None, 'id': req_id}
 
     def dispatch_until_empty(self):
+        """
+            Calls *read_and_dispatch* method until there are no more messages to
+            dispatch in the buffer.
+            
+            Returns the number of operations that succeded.
+            
+            This method will never block waiting. If there aren't any more messages
+            that can be processed, it returns.
+        """
         next = 0
         count = 0
         while next != -1:
@@ -191,6 +326,22 @@ class Connection(object):
                 
                 
     def read_and_dispatch(self,timeout=None):
+        """
+            Read one message from socket (with timeout specified by the optional 
+            argument *timeout*) and dispatches that message.
+            
+            Parameters:
+            
+            **timeout** = None
+                Timeout in seconds of the read operation. If it is None 
+                (or ommitted) then the read will wait until new data is available.
+                
+            **(return value)**
+                True, in case of the operation has suceeded and **one** message
+                has been dispatched. False, if no data or malformed data has beed 
+                received.
+                
+        """
         try:
             self._sck.settimeout(timeout)
             data = self.read()
@@ -211,6 +362,10 @@ class Connection(object):
             
              
     def dispatch_item(self,item):
+        """
+            Given a JSON item received from socket, determine its type and 
+            process the message.
+        """
         assert(type(item) is dict)
         response = None
         if 'id' not in item: item['id'] = None
@@ -270,6 +425,9 @@ class Connection(object):
         return req.value
 
     def close(self):
+        """
+            Close the connection and the socket. 
+        """
         try:
             self._sck.shutdown(socket.SHUT_RDWR)
         except socket.error:
@@ -277,20 +435,46 @@ class Connection(object):
         self._sck.close()
     
     def write_line(self, data):
-        """Write line to socket"""
+        """
+            Write a line *data* to socket. It appends a `\\n` at
+            the end of the *data* before sending it.
+            
+            The string MUST NOT contain `\\n` otherwise an AssertionError will
+            raise.
+            
+            Parameters:
+            
+            **data**
+                String containing the data to be sent.
+        """
         assert('\n' not in data)
         if self._debug_socket: print "<:%d:" % len(data), data
         self._sck.sendall(data + '\n')
 
 
     def read_line(self):
-        """Read line from socket."""
+        """
+            Read a line of *data* from socket. It removes the `\\n` at
+            the end before returning the value.
+            
+            If the original packet contained `\\n`, the message will be decoded
+            as two or more messages.
+            
+            Returns the line of *data* received from the socket.
+        """
         data = self._readn()
         if self._debug_socket: print ">:%d:" % len(data), data
         return data
 
     write = write_line 
+    """ 
+        Standard function to write to the socket which by default points to write_line
+    """
+    
     read = read_line 
+    """ 
+        Standard function to read from the socket which by default points to read_line
+    """
 
     def _readn(self):
         buffer = self._buffer
@@ -314,7 +498,12 @@ class Connection(object):
         #print "read:", repr(buffer)
         return buffer
         
-    def _serve(self):
+    def serve(self):
+        """
+            Basic function to put the connection serving. Usually is better to 
+            use server.Server class to do this, but this would be useful too if 
+            it is run from a separate Thread.
+        """
         try:
             while True: self.read_and_dispatch()
         finally:

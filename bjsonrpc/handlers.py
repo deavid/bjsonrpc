@@ -34,6 +34,22 @@
 import re
     
 class BaseHandler(object):
+    """
+        Base Class to publish remote methods. It is instantiated by *Connection*.
+        
+        Example::
+        
+            class MyHandler(bjson.handlers.BaseHandler):
+                def _setup(self):
+                    # Initailize here.
+                    self.c = 0
+                    
+                def echo(self,text): 
+                    print text
+                    self.c += 1
+                    
+                def getcount(self): return c
+    """
     public_methods_pattern = r'^[a-z]\w+$'
     
     def __init__(self, connection):
@@ -49,6 +65,10 @@ class BaseHandler(object):
         self._setup()
         
     def _setup(self):
+        """
+            Empty method to ease inheritance. Overload it with your needs, it
+            will be called after __init__.
+        """
         pass 
         
     def _close(self):
@@ -71,5 +91,9 @@ class BaseHandler(object):
         
 
 class NullHandler(BaseHandler):
+    """
+        Null version of BaseHandler which has nothing in it. Use this when you
+        don't want to publish any function.
+    """
     pass
         

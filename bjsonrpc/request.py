@@ -38,6 +38,20 @@ import traceback
 import jsonlib as json
 
 class Request(object):
+    """
+        Represents a request to the other end which may be not be completed yet.
+        This class is automatically created by *method* Proxy.
+        
+        Parameters:
+        
+        **conn**
+            Connection instance which this Request belongs to.
+            
+        **request_data** 
+            Dictionary object to serialize as JSON to send to the other end.
+            
+            
+    """
     def __init__(self, conn, request_data):
         self.conn = conn
         self.data = request_data
@@ -56,6 +70,15 @@ class Request(object):
         self.conn.write(data)
         
     def setResponse(self,value):
+        """
+            Method used by Connection instance to tell Request that a Response
+            is available to this request. 
+            
+            Parameters:
+            
+            **value**
+                Value (JSON decoded) received from socket.
+        """
         self.response = value
         for callback in self.callbacks: 
             try:
@@ -67,12 +90,20 @@ class Request(object):
         self.eventResponse.set() # helper for threads.
     
     def wait(self):
+        """
+            Block until there is a response. Will manage the socket and dispatch
+            messages until the response is found.
+        """
         while self.response is None:
             self.conn.read_and_dispatch()
         
     @property
     def value(self):
-        """get request value response"""
+        """
+            Get request value response. If the response is not available, it waits
+            to it (see *wait* method). If the response contains an Error, this
+            method raises *exceptions.ServerError* with the error text inside.
+        """
         self.wait()
         
         if self.response.get('error', None) is not None:
