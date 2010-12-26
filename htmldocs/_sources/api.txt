@@ -56,7 +56,7 @@ bjsonrpc.request module
 bjsonrpc.handlers module
 ------------------------
 .. autoclass:: bjsonrpc.handlers.BaseHandler
-    :members:
+    :members: _setup
     :undoc-members: 
     :inherited-members:
     
