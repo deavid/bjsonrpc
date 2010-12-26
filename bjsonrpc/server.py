@@ -37,13 +37,53 @@ from connection import Connection
 from exceptions import EofError
 
 class Server(object):
+    """
+        Handles a listening socket and automatically accepts incoming 
+        connections. It will create a *bjsonrpc.connection.Connection* for
+        each socket connected to it.
+        
+        Use the *Server.serve()* method to start accepting connections.
+    """
     def __init__(self, conn, handler_factory):
         self._conn = conn
         self._handler = handler_factory
         self._debug_socket = False
         self._debug_dispatch = False
+    
+    def debug_socket(self,value = None):
+        """
+            Sets or retrieves the internal debug_socket value.
+            
+            When is set to true, each new connection will have it set to true, 
+            and every data sent or received by the socket will be printed to
+            stdout.
+        """
+        r = self._debug_socket 
+        if type(value) is bool: self._debug_socket = value
+        return r
+    
+    def debug_dispatch(self,value = None):
+        """
+            Sets or retrieves the internal debug_dispatch value.
+            
+            When is set to true, each new connection will have it set to true, 
+            and every error produced by client connections will be printed to
+            stdout.
+        """
+        r = self._debug_dispatch 
+        if type(value) is bool: self._debug_dispatch = value
+        return r
         
     def serve(self):
+        """
+            Starts the forever-serving loop. This function only exits when an
+            Exception is raised inside, by unexpected error, KeyboardInterrput,
+            etc.
+            
+            It is coded using *select.select* function, and it is capable to 
+            serve to an unlimited amount of connections at same time without using
+            threading.
+        """
         try:
             sockets = []
             connections = []

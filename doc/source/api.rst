@@ -2,20 +2,28 @@ bjsonrpc Application Programming Interface
 ==============================================
 
 .. module:: bjsonrpc
+   :synopsis: JSON-RPC over TCP/IP implementation with lots of features.
 
+bjsonrpc is a pure-python module to connect two peers and call remote procedures
+(RPC). This implementation resembles JSON-RPC 1.1 with several additions that
+add more interctivity.
+
+You can have a *server*, which accepts multiple client connections, or a client
+which is one connection itself.
+
+The implementation is symmetric/bidirectional. That means that the same things 
+you can do with a server and with a client. You could create a client which waits
+for server requests.
+   
 bjsonrpc provides two helper functions to easily create 
-a server or a connection, linked to a socket.
+a server or a connection, linked to a socket:
     
-.. autofunction:: createserver
+.. autofunction:: bjsonrpc.createserver
 
-.. autofunction:: connect
-::
-
-    import bjsonrpc
-    
-    conn = bjson.connect(host="rpc.host.com",port=5000) 
+.. autofunction:: bjsonrpc.connect
 
 
+.. _bjsonrpc.server:
 
 bjsonrpc.server module
 ------------------------
@@ -23,6 +31,8 @@ bjsonrpc.server module
     :members:
     :undoc-members: 
     :inherited-members:
+
+.. _bjsonrpc.connection:
 
 bjsonrpc.connection module
 --------------------------

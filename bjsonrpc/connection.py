@@ -61,6 +61,13 @@ class RemoteObject(object):
         
 
 class Connection(object):
+    """ 
+    Creates a **connection** to a peer bounded to a connected socket::
+    
+        import bjson
+        
+        
+    """
     def __init__(self, socket, address = None, handler_factory = None):
         self._debug_socket = False
         self._debug_dispatch = False
