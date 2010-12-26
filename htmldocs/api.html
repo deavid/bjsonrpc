@@ -1,0 +1,368 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>bjsonrpc Application Programming Interface &mdash; bjsonrpc v0.1.x-dev documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.1.x-dev',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="bjsonrpc v0.1.x-dev documentation" href="index.html" />
+    <link rel="prev" title="Basic Tutorial" href="tutorial.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="tutorial.html" title="Basic Tutorial"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">bjsonrpc v0.1.x-dev documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  
+  <div class="section" id="module-bjsonrpc">
+<h1>bjsonrpc Application Programming Interface<a class="headerlink" href="#module-bjsonrpc" title="Permalink to this headline">¶</a></h1>
+<p>bjsonrpc is a pure-python module to connect two peers and call remote procedures
+(RPC). This implementation resembles JSON-RPC 1.1 with several additions that
+add more interctivity.</p>
+<p>You can have a <em>server</em>, which accepts multiple client connections, or a client
+which is one connection itself.</p>
+<p>The implementation is symmetric/bidirectional. That means that the same things
+you can do with a server and with a client. You could create a client which waits
+for server requests.</p>
+<p>bjsonrpc provides two helper functions to easily create
+a server or a connection, linked to a socket:</p>
+<dl class="function">
+<dt id="bjsonrpc.createserver">
+<!--[bjsonrpc.createserver]--><tt class="descclassname">bjsonrpc.</tt><tt class="descname">createserver</tt><big>(</big><em>host='127.0.0.1'</em>, <em>port=10123</em>, <em>handler_factory=&lt;class 'bjsonrpc.handlers.NullHandler'&gt;</em><big>)</big><a class="headerlink" href="#bjsonrpc.createserver" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a <em>bjson.server.Server</em> object linked to a listening socket.</p>
+<p>Parameters:</p>
+<dl class="docutils">
+<dt><strong>host</strong></dt>
+<dd>Address (IP or Host Name) to listen to as in <em>socket.bind</em>.
+Use &#8220;0.0.0.0&#8221; to listen to all address. By default this points to 
+127.0.0.1 to avoid security flaws.</dd>
+<dt><strong>port</strong></dt>
+<dd>Port number to bind the socket. In Unix, port numbers less
+than 1024 requires special permissions.</dd>
+<dt><strong>handler_factory</strong></dt>
+<dd>Class to instantiate to publish remote functions.</dd>
+<dt><strong>(return value)</strong></dt>
+<dd>A <em>bjson.server.Server</em> instance or raises an exception.</dd>
+</dl>
+<p>Servers are usually created this way:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">import</span> <span class="nn">bjsonrpc</span>
+
+<span class="n">server</span> <span class="o">=</span> <span class="n">bjsonrpc</span><span class="o">.</span><span class="n">createserver</span><span class="p">(</span><span class="s">&quot;0.0.0.0&quot;</span><span class="p">)</span>
+<span class="n">server</span><span class="o">.</span><span class="n">serve</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Check <a class="reference internal" href="#bjsonrpc-server"><em>bjsonrpc.server module</em></a> documentation</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="bjsonrpc.connect">
+<!--[bjsonrpc.connect]--><tt class="descclassname">bjsonrpc.</tt><tt class="descname">connect</tt><big>(</big><em>host='127.0.0.1'</em>, <em>port=10123</em>, <em>handler_factory=&lt;class 'bjsonrpc.handlers.NullHandler'&gt;</em><big>)</big><a class="headerlink" href="#bjsonrpc.connect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a <em>bjson.connection.Connection</em> object linked to a connected
+socket.</p>
+<p>Parameters:</p>
+<dl class="docutils">
+<dt><strong>host</strong></dt>
+<dd>Address (IP or Host Name) to connect to.</dd>
+<dt><strong>port</strong></dt>
+<dd>Port number to connect to.</dd>
+<dt><strong>handler_factory</strong></dt>
+<dd>Class to instantiate to publish remote functions to the server. 
+By default this is <em>NullHandler</em> which means that no functions are
+executable by the server.</dd>
+<dt><strong>(return value)</strong></dt>
+<dd>A <em>bjson.connection.Connection</em> instance or raises an exception.</dd>
+</dl>
+<p>Connections are usually created this way:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">import</span> <span class="nn">bjsonrpc</span>
+
+<span class="n">conn</span> <span class="o">=</span> <span class="n">bjsonrpc</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&quot;rpc.host.net&quot;</span><span class="p">)</span>
+<span class="k">print</span> <span class="n">conn</span><span class="o">.</span><span class="n">call</span><span class="o">.</span><span class="n">some_method_in_server_side</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<div class="section" id="bjsonrpc-server-module">
+<span id="bjsonrpc-server"></span><h2>bjsonrpc.server module<a class="headerlink" href="#bjsonrpc-server-module" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="bjsonrpc.server.Server">
+<!--[bjsonrpc.server.Server]-->class <tt class="descclassname">bjsonrpc.server.</tt><tt class="descname">Server</tt><big>(</big><em>conn</em>, <em>handler_factory</em><big>)</big><a class="headerlink" href="#bjsonrpc.server.Server" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handles a listening socket and automatically accepts incoming 
+connections. It will create a <em>bjsonrpc.connection.Connection</em> for
+each socket connected to it.</p>
+<p>Use the <em>Server.serve()</em> method to start accepting connections.</p>
+<dl class="method">
+<dt id="bjsonrpc.server.Server.debug_dispatch">
+<!--[bjsonrpc.server.Server.debug_dispatch]--><tt class="descname">debug_dispatch</tt><big>(</big><em>value=None</em><big>)</big><a class="headerlink" href="#bjsonrpc.server.Server.debug_dispatch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets or retrieves the internal debug_dispatch value.</p>
+<p>When is set to true, each new connection will have it set to true, 
+and every error produced by client connections will be printed to
+stdout.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="bjsonrpc.server.Server.debug_socket">
+<!--[bjsonrpc.server.Server.debug_socket]--><tt class="descname">debug_socket</tt><big>(</big><em>value=None</em><big>)</big><a class="headerlink" href="#bjsonrpc.server.Server.debug_socket" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets or retrieves the internal debug_socket value.</p>
+<p>When is set to true, each new connection will have it set to true, 
+and every data sent or received by the socket will be printed to
+stdout.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="bjsonrpc.server.Server.serve">
+<!--[bjsonrpc.server.Server.serve]--><tt class="descname">serve</tt><big>(</big><big>)</big><a class="headerlink" href="#bjsonrpc.server.Server.serve" title="Permalink to this definition">¶</a></dt>
+<dd><p>Starts the forever-serving loop. This function only exits when an
+Exception is raised inside, by unexpected error, KeyboardInterrput,
+etc.</p>
+<p>It is coded using <em>select.select</em> function, and it is capable to 
+serve to an unlimited amount of connections at same time without using
+threading.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="bjsonrpc-connection-module">
+<span id="bjsonrpc-connection"></span><h2>bjsonrpc.connection module<a class="headerlink" href="#bjsonrpc-connection-module" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="bjsonrpc.connection.Connection">
+<!--[bjsonrpc.connection.Connection]-->class <tt class="descclassname">bjsonrpc.connection.</tt><tt class="descname">Connection</tt><big>(</big><em>socket</em>, <em>address=None</em>, <em>handler_factory=None</em><big>)</big><a class="headerlink" href="#bjsonrpc.connection.Connection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a <strong>connection</strong> to a peer bounded to a connected socket:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">import</span> <span class="nn">bjson</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="bjsonrpc.connection.Connection.close">
+<!--[bjsonrpc.connection.Connection.close]--><tt class="descname">close</tt><big>(</big><big>)</big><a class="headerlink" href="#bjsonrpc.connection.Connection.close" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="bjsonrpc.connection.Connection.dispatch_item">
+<!--[bjsonrpc.connection.Connection.dispatch_item]--><tt class="descname">dispatch_item</tt><big>(</big><em>item</em><big>)</big><a class="headerlink" href="#bjsonrpc.connection.Connection.dispatch_item" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="bjsonrpc.connection.Connection.dispatch_until_empty">
+<!--[bjsonrpc.connection.Connection.dispatch_until_empty]--><tt class="descname">dispatch_until_empty</tt><big>(</big><big>)</big><a class="headerlink" href="#bjsonrpc.connection.Connection.dispatch_until_empty" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="bjsonrpc.connection.Connection.dump_functionreference">
+<!--[bjsonrpc.connection.Connection.dump_functionreference]--><tt class="descname">dump_functionreference</tt><big>(</big><em>obj</em><big>)</big><a class="headerlink" href="#bjsonrpc.connection.Connection.dump_functionreference" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="bjsonrpc.connection.Connection.dump_object">
+<!--[bjsonrpc.connection.Connection.dump_object]--><tt class="descname">dump_object</tt><big>(</big><em>obj</em><big>)</big><a class="headerlink" href="#bjsonrpc.connection.Connection.dump_object" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="bjsonrpc.connection.Connection.dump_objectreference">
+<!--[bjsonrpc.connection.Connection.dump_objectreference]--><tt class="descname">dump_objectreference</tt><big>(</big><em>obj</em><big>)</big><a class="headerlink" href="#bjsonrpc.connection.Connection.dump_objectreference" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="bjsonrpc.connection.Connection.dump_remoteobject">
+<!--[bjsonrpc.connection.Connection.dump_remoteobject]--><tt class="descname">dump_remoteobject</tt><big>(</big><em>obj</em><big>)</big><a class="headerlink" href="#bjsonrpc.connection.Connection.dump_remoteobject" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="bjsonrpc.connection.Connection.getID">
+<!--[bjsonrpc.connection.Connection.getID]--><tt class="descname">getID</tt><big>(</big><big>)</big><a class="headerlink" href="#bjsonrpc.connection.Connection.getID" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="bjsonrpc.connection.Connection.load_object">
+<!--[bjsonrpc.connection.Connection.load_object]--><tt class="descname">load_object</tt><big>(</big><em>obj</em><big>)</big><a class="headerlink" href="#bjsonrpc.connection.Connection.load_object" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="bjsonrpc.connection.Connection.read">
+<!--[bjsonrpc.connection.Connection.read]--><tt class="descname">read</tt><big>(</big><big>)</big><a class="headerlink" href="#bjsonrpc.connection.Connection.read" title="Permalink to this definition">¶</a></dt>
+<dd>Read line from socket.</dd></dl>
+
+<dl class="method">
+<dt id="bjsonrpc.connection.Connection.read_and_dispatch">
+<!--[bjsonrpc.connection.Connection.read_and_dispatch]--><tt class="descname">read_and_dispatch</tt><big>(</big><em>timeout=None</em><big>)</big><a class="headerlink" href="#bjsonrpc.connection.Connection.read_and_dispatch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="bjsonrpc.connection.Connection.read_line">
+<!--[bjsonrpc.connection.Connection.read_line]--><tt class="descname">read_line</tt><big>(</big><big>)</big><a class="headerlink" href="#bjsonrpc.connection.Connection.read_line" title="Permalink to this definition">¶</a></dt>
+<dd>Read line from socket.</dd></dl>
+
+<dl class="method">
+<dt id="bjsonrpc.connection.Connection.write">
+<!--[bjsonrpc.connection.Connection.write]--><tt class="descname">write</tt><big>(</big><em>data</em><big>)</big><a class="headerlink" href="#bjsonrpc.connection.Connection.write" title="Permalink to this definition">¶</a></dt>
+<dd>Write line to socket</dd></dl>
+
+<dl class="method">
+<dt id="bjsonrpc.connection.Connection.write_line">
+<!--[bjsonrpc.connection.Connection.write_line]--><tt class="descname">write_line</tt><big>(</big><em>data</em><big>)</big><a class="headerlink" href="#bjsonrpc.connection.Connection.write_line" title="Permalink to this definition">¶</a></dt>
+<dd>Write line to socket</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="bjsonrpc.connection.RemoteObject">
+<!--[bjsonrpc.connection.RemoteObject]-->class <tt class="descclassname">bjsonrpc.connection.</tt><tt class="descname">RemoteObject</tt><big>(</big><em>conn</em>, <em>obj</em><big>)</big><a class="headerlink" href="#bjsonrpc.connection.RemoteObject" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="bjsonrpc-request-module">
+<h2>bjsonrpc.request module<a class="headerlink" href="#bjsonrpc-request-module" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="bjsonrpc.request.Request">
+<!--[bjsonrpc.request.Request]-->class <tt class="descclassname">bjsonrpc.request.</tt><tt class="descname">Request</tt><big>(</big><em>conn</em>, <em>request_data</em><big>)</big><a class="headerlink" href="#bjsonrpc.request.Request" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="bjsonrpc.request.Request.setResponse">
+<!--[bjsonrpc.request.Request.setResponse]--><tt class="descname">setResponse</tt><big>(</big><em>value</em><big>)</big><a class="headerlink" href="#bjsonrpc.request.Request.setResponse" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="bjsonrpc.request.Request.value">
+<!--[bjsonrpc.request.Request.value]--><tt class="descname">value</tt><a class="headerlink" href="#bjsonrpc.request.Request.value" title="Permalink to this definition">¶</a></dt>
+<dd>get request value response</dd></dl>
+
+<dl class="method">
+<dt id="bjsonrpc.request.Request.wait">
+<!--[bjsonrpc.request.Request.wait]--><tt class="descname">wait</tt><big>(</big><big>)</big><a class="headerlink" href="#bjsonrpc.request.Request.wait" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="bjsonrpc-handlers-module">
+<h2>bjsonrpc.handlers module<a class="headerlink" href="#bjsonrpc-handlers-module" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="bjsonrpc.handlers.BaseHandler">
+<!--[bjsonrpc.handlers.BaseHandler]-->class <tt class="descclassname">bjsonrpc.handlers.</tt><tt class="descname">BaseHandler</tt><big>(</big><em>connection</em><big>)</big><a class="headerlink" href="#bjsonrpc.handlers.BaseHandler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="bjsonrpc.handlers.NullHandler">
+<!--[bjsonrpc.handlers.NullHandler]-->class <tt class="descclassname">bjsonrpc.handlers.</tt><tt class="descname">NullHandler</tt><big>(</big><em>connection</em><big>)</big><a class="headerlink" href="#bjsonrpc.handlers.NullHandler" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="bjsonrpc-proxies-module">
+<h2>bjsonrpc.proxies module<a class="headerlink" href="#bjsonrpc-proxies-module" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="bjsonrpc.proxies.Proxy">
+<!--[bjsonrpc.proxies.Proxy]-->class <tt class="descclassname">bjsonrpc.proxies.</tt><tt class="descname">Proxy</tt><big>(</big><em>conn</em>, <em>sync_type</em>, <em>obj=None</em><big>)</big><a class="headerlink" href="#bjsonrpc.proxies.Proxy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="bjsonrpc-jsonlib-module">
+<h2>bjsonrpc.jsonlib module<a class="headerlink" href="#bjsonrpc-jsonlib-module" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="bjsonrpc.jsonlib.dumps">
+<!--[bjsonrpc.jsonlib.dumps]--><tt class="descclassname">bjsonrpc.jsonlib.</tt><tt class="descname">dumps</tt><big>(</big><em>argobj</em>, <em>conn</em><big>)</big><a class="headerlink" href="#bjsonrpc.jsonlib.dumps" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="bjsonrpc.jsonlib.loads">
+<!--[bjsonrpc.jsonlib.loads]--><tt class="descclassname">bjsonrpc.jsonlib.</tt><tt class="descname">loads</tt><big>(</big><em>argobj</em>, <em>conn</em><big>)</big><a class="headerlink" href="#bjsonrpc.jsonlib.loads" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="bjsonrpc-exceptions-module">
+<h2>bjsonrpc.exceptions module<a class="headerlink" href="#bjsonrpc-exceptions-module" title="Permalink to this headline">¶</a></h2>
+<dl class="exception">
+<dt id="bjsonrpc.exceptions.EofError">
+<!--[bjsonrpc.exceptions.EofError]-->exception <tt class="descclassname">bjsonrpc.exceptions.</tt><tt class="descname">EofError</tt><a class="headerlink" href="#bjsonrpc.exceptions.EofError" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="exception">
+<dt id="bjsonrpc.exceptions.ServerError">
+<!--[bjsonrpc.exceptions.ServerError]-->exception <tt class="descclassname">bjsonrpc.exceptions.</tt><tt class="descname">ServerError</tt><a class="headerlink" href="#bjsonrpc.exceptions.ServerError" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="">bjsonrpc Application Programming Interface</a><ul>
+<li><a class="reference external" href="#bjsonrpc-server-module">bjsonrpc.server module</a></li>
+<li><a class="reference external" href="#bjsonrpc-connection-module">bjsonrpc.connection module</a></li>
+<li><a class="reference external" href="#bjsonrpc-request-module">bjsonrpc.request module</a></li>
+<li><a class="reference external" href="#bjsonrpc-handlers-module">bjsonrpc.handlers module</a></li>
+<li><a class="reference external" href="#bjsonrpc-proxies-module">bjsonrpc.proxies module</a></li>
+<li><a class="reference external" href="#bjsonrpc-jsonlib-module">bjsonrpc.jsonlib module</a></li>
+<li><a class="reference external" href="#bjsonrpc-exceptions-module">bjsonrpc.exceptions module</a></li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="tutorial.html" title="previous chapter">Basic Tutorial</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/api.txt">Show Source</a></li>
+            </ul>
+          <h3>Quick search</h3>
+            <form class="search" action="search.html" method="get">
+              <input type="text" name="q" size="18" /> <input type="submit" value="Go" />
+              <input type="hidden" name="check_keywords" value="yes" />
+              <input type="hidden" name="area" value="default" />
+            </form>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="tutorial.html" title="Basic Tutorial"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">bjsonrpc v0.1.x-dev documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2010, David Martínez Martí.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.5.2.
+    </div>
+  </body>
+</html>
