@@ -456,7 +456,17 @@ don&#8217;t want to publish any function.</dd></dl>
 <dl class="class">
 <dt id="bjsonrpc.proxies.Proxy">
 <em class="property">class </em><tt class="descclassname">bjsonrpc.proxies.</tt><tt class="descname">Proxy</tt><big>(</big><em>conn</em>, <em>sync_type</em>, <em>obj=None</em><big>)</big><a class="headerlink" href="#bjsonrpc.proxies.Proxy" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Object that forwards calls to the remote.</p>
+<p>Parameters:</p>
+<dl class="docutils">
+<dt><strong>conn</strong></dt>
+<dd>Connection object to forward calls.</dd>
+<dt><strong>sync_type</strong></dt>
+<dd>synchronization type. 0-synchronous. 1-asynchronous. 2-notification.</dd>
+<dt><strong>obj</strong> = None</dt>
+<dd>optional. Object name to call their functions, (used to proxy functions of <em>RemoteObject</em></dd>
+</dl>
+</dd></dl>
 
 </div>
 <div class="section" id="bjsonrpc-jsonlib-module">
@@ -464,12 +474,14 @@ don&#8217;t want to publish any function.</dd></dl>
 <dl class="function">
 <dt id="bjsonrpc.jsonlib.dumps">
 <tt class="descclassname">bjsonrpc.jsonlib.</tt><tt class="descname">dumps</tt><big>(</big><em>argobj</em>, <em>conn</em><big>)</big><a class="headerlink" href="#bjsonrpc.jsonlib.dumps" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd>dumps json object using loaded json library and forwards unknown objects
+to <em>Connection.dumpObject</em> function.</dd></dl>
 
 <dl class="function">
 <dt id="bjsonrpc.jsonlib.loads">
 <tt class="descclassname">bjsonrpc.jsonlib.</tt><tt class="descname">loads</tt><big>(</big><em>argobj</em>, <em>conn</em><big>)</big><a class="headerlink" href="#bjsonrpc.jsonlib.loads" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd>loads json object using <em>Connection.load_object</em> to convert json hinted 
+objects to real objects.</dd></dl>
 
 </div>
 <div class="section" id="bjsonrpc-exceptions-module">
@@ -482,7 +494,8 @@ don&#8217;t want to publish any function.</dd></dl>
 <dl class="exception">
 <dt id="bjsonrpc.exceptions.ServerError">
 <em class="property">exception </em><tt class="descclassname">bjsonrpc.exceptions.</tt><tt class="descname">ServerError</tt><a class="headerlink" href="#bjsonrpc.exceptions.ServerError" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd>Exception raised whenever an error occurs in the other end handling 
+your request.</dd></dl>
 
 </div>
 </div>
