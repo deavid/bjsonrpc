@@ -35,11 +35,12 @@
 import sys
 sys.path.insert(0,"../") # prefer local version
 import bjsonrpc
+from bjsonrpc.handlers import BaseHandler
 
 import random
 import time
 
-class Chronometer(bjsonrpc.BaseHandler):
+class Chronometer(BaseHandler):
     def _setup(self):
         self._begin = 0
         self._end = 0
@@ -63,7 +64,7 @@ class Chronometer(bjsonrpc.BaseHandler):
         
         
         
-class MyList(bjsonrpc.BaseHandler):
+class MyList(BaseHandler):
     def _setup(self):
         self._list = []
         
@@ -90,7 +91,7 @@ class MyList(bjsonrpc.BaseHandler):
 
 
 
-class MyHandler(bjsonrpc.BaseHandler):
+class MyHandler(BaseHandler):
     def _setup(self):
         self.value_count = 0
         self.value_total = 0
@@ -125,6 +126,6 @@ class MyHandler(bjsonrpc.BaseHandler):
         return string
     
 
-s = bjsonrpc.server(handler_factory=MyHandler, port = 10123, host = "0.0.0.0")
-s._debug_socket = True
+s = bjsonrpc.createserver(handler_factory=MyHandler, port = 10123, host = "0.0.0.0")
+s.debug_socket(True)
 s.serve()

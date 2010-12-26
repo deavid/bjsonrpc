@@ -33,17 +33,19 @@
 """
 
 print "starting ... random"
-import random
+import random, sys
 print "starting ... time"
 import time
 print "starting ... simplejson"
 import simplejson
 print "starting ... bsonjrpc"
+sys.path.insert(0,"..")
 import bjsonrpc
 print "ready."
 
+from bjsonrpc.handlers import BaseHandler
 
-class MyHandler(bjsonrpc.BaseHandler):
+class MyHandler(BaseHandler):
     def notify(self,text):
         print "Notify:", text
         

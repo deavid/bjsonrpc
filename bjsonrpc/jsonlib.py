@@ -42,9 +42,15 @@ except ImportError:
 
 
 def dumps(argobj, conn):
-
+    """
+        dumps json object using loaded json library and forwards unknown objects
+        to *Connection.dumpObject* function.
+    """
     return j.dumps(argobj, separators = (',', ':'), default=conn.dump_object)
 
 def loads(argobj, conn):
-
+    """
+        loads json object using *Connection.load_object* to convert json hinted 
+        objects to real objects. 
+    """
     return j.loads(argobj, object_hook=conn.load_object)

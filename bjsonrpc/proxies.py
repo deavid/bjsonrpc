@@ -34,6 +34,21 @@
 # import weakref
 
 class Proxy(object):
+    """
+    Object that forwards calls to the remote.
+    
+    Parameters:
+    
+    **conn**
+        Connection object to forward calls.
+        
+    **sync_type**
+        synchronization type. 0-synchronous. 1-asynchronous. 2-notification.
+        
+    **obj** = None
+        optional. Object name to call their functions, (used to proxy functions of *RemoteObject*
+        
+    """
     def __init__(self, conn, sync_type, obj = None):
         self._conn = conn
         self._obj = obj
@@ -45,7 +60,8 @@ class Proxy(object):
             
         def fn(*args, **kwargs):
             return self._conn._proxy(self.sync_type, name, args, kwargs)
-        fn.__name__ = name
+        #print name
+        fn.__name__ = str(name)
         fn._conn = self._conn
         fn.sync_type = self.sync_type
         

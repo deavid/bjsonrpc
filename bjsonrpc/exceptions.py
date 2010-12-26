@@ -32,6 +32,10 @@
 
 """
 class ServerError(Exception):
+    """
+        Exception raised whenever an error occurs in the other end handling 
+        your request.
+    """
     pass
 
 class EofError(Exception):

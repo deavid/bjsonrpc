@@ -36,11 +36,12 @@
 import sys
 sys.path.insert(0,"../") # prefer local version
 import bjsonrpc
+from bjsonrpc.handlers import BaseHandler
 
 import random
 import time
 
-class MyHandler(bjsonrpc.BaseHandler):
+class MyHandler(BaseHandler):
     def notify(self,text):
         print "Notify:", text
         
