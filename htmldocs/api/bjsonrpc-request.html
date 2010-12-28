@@ -1,0 +1,154 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Module bjsonrpc.request &mdash; bjsonrpc v0.1.x-dev documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1.x-dev',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="bjsonrpc v0.1.x-dev documentation" href="../index.html" />
+    <link rel="up" title="Application Programming Interface (API)" href="index.html" />
+    <link rel="next" title="Module bjsonrpc.handlers" href="bjsonrpc-handlers.html" />
+    <link rel="prev" title="Module bjsonrpc.connection" href="bjsonrpc-connection.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="bjsonrpc-handlers.html" title="Module bjsonrpc.handlers"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="bjsonrpc-connection.html" title="Module bjsonrpc.connection"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">bjsonrpc v0.1.x-dev documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Application Programming Interface (API)</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-bjsonrpc-request">
+<span id="bjsonrpc-request"></span><h1>Module bjsonrpc.request<a class="headerlink" href="#module-bjsonrpc-request" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="bjsonrpc.request.Request">
+<em class="property">class </em><tt class="descclassname">bjsonrpc.request.</tt><tt class="descname">Request</tt><big>(</big><em>conn</em>, <em>request_data</em><big>)</big><a class="headerlink" href="#bjsonrpc.request.Request" title="Permalink to this definition">¶</a></dt>
+<dd><p>Represents a request to the other end which may be not be completed yet.
+This class is automatically created by <em>method</em> Proxy.</p>
+<p>Parameters:</p>
+<dl class="docutils">
+<dt><strong>conn</strong></dt>
+<dd>Connection instance which this Request belongs to.</dd>
+<dt><strong>request_data</strong> </dt>
+<dd>Dictionary object to serialize as JSON to send to the other end.</dd>
+</dl>
+<dl class="method">
+<dt id="bjsonrpc.request.Request.setResponse">
+<tt class="descname">setResponse</tt><big>(</big><em>value</em><big>)</big><a class="headerlink" href="#bjsonrpc.request.Request.setResponse" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method used by Connection instance to tell Request that a Response
+is available to this request.</p>
+<p>Parameters:</p>
+<dl class="docutils">
+<dt><strong>value</strong></dt>
+<dd>Value (JSON decoded) received from socket.</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="bjsonrpc.request.Request.value">
+<tt class="descname">value</tt><a class="headerlink" href="#bjsonrpc.request.Request.value" title="Permalink to this definition">¶</a></dt>
+<dd>Get request value response. If the response is not available, it waits
+to it (see <em>wait</em> method). If the response contains an Error, this
+method raises <em>exceptions.ServerError</em> with the error text inside.</dd></dl>
+
+<dl class="method">
+<dt id="bjsonrpc.request.Request.wait">
+<tt class="descname">wait</tt><big>(</big><big>)</big><a class="headerlink" href="#bjsonrpc.request.Request.wait" title="Permalink to this definition">¶</a></dt>
+<dd>Block until there is a response. Will manage the socket and dispatch
+messages until the response is found.</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="bjsonrpc-connection.html"
+                                  title="previous chapter">Module bjsonrpc.connection</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="bjsonrpc-handlers.html"
+                                  title="next chapter">Module bjsonrpc.handlers</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="../_sources/api/bjsonrpc-request.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="../search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../modindex.html" title="Global Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="bjsonrpc-handlers.html" title="Module bjsonrpc.handlers"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="bjsonrpc-connection.html" title="Module bjsonrpc.connection"
+             >previous</a> |</li>
+        <li><a href="../index.html">bjsonrpc v0.1.x-dev documentation</a> &raquo;</li>
+          <li><a href="index.html" >Application Programming Interface (API)</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2010, David Martínez Martí.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.6.
+    </div>
+  </body>
+</html>

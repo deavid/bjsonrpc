@@ -9,11 +9,11 @@ Welcome to bjsonrpc's documentation!
 Contents:
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 4
    
    intro
    tutorial
-   api
+   api/index
 
 Indices and tables
 ==================

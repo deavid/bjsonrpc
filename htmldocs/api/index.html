@@ -1,0 +1,198 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Application Programming Interface (API) &mdash; bjsonrpc v0.1.x-dev documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1.x-dev',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="bjsonrpc v0.1.x-dev documentation" href="../index.html" />
+    <link rel="next" title="Module bjsonrpc.server" href="bjsonrpc-server.html" />
+    <link rel="prev" title="Basic Tutorial" href="../tutorial.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="bjsonrpc-server.html" title="Module bjsonrpc.server"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../tutorial.html" title="Basic Tutorial"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">bjsonrpc v0.1.x-dev documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-bjsonrpc">
+<h1>Application Programming Interface (API)<a class="headerlink" href="#module-bjsonrpc" title="Permalink to this headline">¶</a></h1>
+<p>Contents:</p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="bjsonrpc-server.html">Module bjsonrpc.server</a></li>
+<li class="toctree-l1"><a class="reference external" href="bjsonrpc-connection.html">Module bjsonrpc.connection</a></li>
+<li class="toctree-l1"><a class="reference external" href="bjsonrpc-request.html">Module bjsonrpc.request</a></li>
+<li class="toctree-l1"><a class="reference external" href="bjsonrpc-handlers.html">Module bjsonrpc.handlers</a></li>
+<li class="toctree-l1"><a class="reference external" href="bjsonrpc-proxies.html">Module bjsonrpc.proxies</a></li>
+<li class="toctree-l1"><a class="reference external" href="bjsonrpc-jsonlib.html">Module bjsonrpc.jsonlib</a></li>
+<li class="toctree-l1"><a class="reference external" href="bjsonrpc-exceptions.html">Module bjsonrpc.exceptions</a></li>
+</ul>
+<div class="section" id="id1">
+<h2>Module bjsonrpc<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>bjsonrpc is a pure-python module to connect two peers and call remote procedures
+(RPC). This implementation resembles JSON-RPC 1.1 with several additions that
+add more interctivity.</p>
+<p>You can have a <em>server</em>, which accepts multiple client connections, or a client
+which is one connection itself.</p>
+<p>The implementation is symmetric/bidirectional. That means that the same things
+you can do with a server and with a client. You could create a client which waits
+for server requests.</p>
+<p>bjsonrpc provides two helper functions to easily create
+a server or a connection, linked to a socket:</p>
+<dl class="function">
+<dt id="bjsonrpc.createserver">
+<tt class="descclassname">bjsonrpc.</tt><tt class="descname">createserver</tt><big>(</big><em>host='127.0.0.1'</em>, <em>port=10123</em>, <em>handler_factory=&lt;class 'bjsonrpc.handlers.NullHandler'&gt;</em><big>)</big><a class="headerlink" href="#bjsonrpc.createserver" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a <em>bjson.server.Server</em> object linked to a listening socket.</p>
+<p>Parameters:</p>
+<dl class="docutils">
+<dt><strong>host</strong></dt>
+<dd>Address (IP or Host Name) to listen to as in <em>socket.bind</em>.
+Use &#8220;0.0.0.0&#8221; to listen to all address. By default this points to 
+127.0.0.1 to avoid security flaws.</dd>
+<dt><strong>port</strong></dt>
+<dd>Port number to bind the socket. In Unix, port numbers less
+than 1024 requires special permissions.</dd>
+<dt><strong>handler_factory</strong></dt>
+<dd>Class to instantiate to publish remote functions.</dd>
+<dt><strong>(return value)</strong></dt>
+<dd>A <em>bjson.server.Server</em> instance or raises an exception.</dd>
+</dl>
+<p>Servers are usually created this way:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">bjsonrpc</span>
+
+<span class="n">server</span> <span class="o">=</span> <span class="n">bjsonrpc</span><span class="o">.</span><span class="n">createserver</span><span class="p">(</span><span class="s">&quot;0.0.0.0&quot;</span><span class="p">)</span>
+<span class="n">server</span><span class="o">.</span><span class="n">serve</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Check <a class="reference external" href="bjsonrpc-server.html#bjsonrpc-server"><em>Module bjsonrpc.server</em></a> documentation</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="bjsonrpc.connect">
+<tt class="descclassname">bjsonrpc.</tt><tt class="descname">connect</tt><big>(</big><em>host='127.0.0.1'</em>, <em>port=10123</em>, <em>handler_factory=&lt;class 'bjsonrpc.handlers.NullHandler'&gt;</em><big>)</big><a class="headerlink" href="#bjsonrpc.connect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a <em>bjson.connection.Connection</em> object linked to a connected
+socket.</p>
+<p>Parameters:</p>
+<dl class="docutils">
+<dt><strong>host</strong></dt>
+<dd>Address (IP or Host Name) to connect to.</dd>
+<dt><strong>port</strong></dt>
+<dd>Port number to connect to.</dd>
+<dt><strong>handler_factory</strong></dt>
+<dd>Class to instantiate to publish remote functions to the server. 
+By default this is <em>NullHandler</em> which means that no functions are
+executable by the server.</dd>
+<dt><strong>(return value)</strong></dt>
+<dd>A <em>bjson.connection.Connection</em> instance or raises an exception.</dd>
+</dl>
+<p>Connections are usually created this way:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">bjsonrpc</span>
+
+<span class="n">conn</span> <span class="o">=</span> <span class="n">bjsonrpc</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s">&quot;rpc.host.net&quot;</span><span class="p">)</span>
+<span class="k">print</span> <span class="n">conn</span><span class="o">.</span><span class="n">call</span><span class="o">.</span><span class="n">some_method_in_server_side</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="../index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="#">Application Programming Interface (API)</a><ul>
+<li><a class="reference external" href="#id1">Module bjsonrpc</a></li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="../tutorial.html"
+                                  title="previous chapter">Basic Tutorial</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="bjsonrpc-server.html"
+                                  title="next chapter">Module bjsonrpc.server</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="../_sources/api/index.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="../search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../modindex.html" title="Global Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="bjsonrpc-server.html" title="Module bjsonrpc.server"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="../tutorial.html" title="Basic Tutorial"
+             >previous</a> |</li>
+        <li><a href="../index.html">bjsonrpc v0.1.x-dev documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2010, David Martínez Martí.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.6.
+    </div>
+  </body>
+</html>
