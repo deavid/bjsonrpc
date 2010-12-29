@@ -39,7 +39,7 @@ from exceptions import EofError
 import jsonlib as json
 from types import MethodType, FunctionType
 
-import socket, traceback, sys
+import socket, traceback, sys, threading, time
 
 class RemoteObject(object):
     """
@@ -139,6 +139,10 @@ class Connection(object):
             avaliable to the other end.
         
     """
+    _maxtimeout = {
+        'read' : 5,
+        'write' : 5,
+    }
     
     call = None 
     """ 
@@ -172,9 +176,11 @@ class Connection(object):
         self._requests = {}
         self._objects = {}
 
+        self.scklock = threading.Lock()
         self.call = Proxy(self,sync_type=0)
         self.method = Proxy(self,sync_type=1)
         self.notify = Proxy(self,sync_type=2)
+        self._wbuffer = []
         
     def getID(self):
         """
@@ -342,11 +348,7 @@ class Connection(object):
                 received.
                 
         """
-        try:
-            self._sck.settimeout(timeout)
-            data = self.read()
-        finally:
-            self._sck.settimeout(None)
+        data = self.read(timeout=timeout)
             
         if not data: return False 
         item = json.loads(data,self)  
@@ -449,7 +451,28 @@ class Connection(object):
         """
         assert('\n' not in data)
         if self._debug_socket: print "<:%d:" % len(data), data
-        self._sck.sendall(data + '\n')
+        self._wbuffer += list(str(data + '\n'))
+        sbytes = 0
+        while len(self._wbuffer) > 0:
+            try:
+                sbytes = self._sck.send("".join(self._wbuffer))
+            except IOError:
+                print "Read socket error: IOError (timeout: %s)" % (repr(self._sck.gettimeout()))
+                print traceback.format_exc(0)
+                return ''
+            except socket.error:
+                print "Read socket error: socket.error (timeout: %s)" % (repr(self._sck.gettimeout()))
+                print traceback.format_exc(0)
+                return ''
+            except:
+                raise
+            if sbytes == 0: 
+                break
+            self._wbuffer[0:sbytes] = []
+        if len(self._wbuffer):
+            print "warn: %d bytes left in write buffer" % len(self._wbuffer)
+        return len(self._wbuffer)
+            
 
 
     def read_line(self):
@@ -463,27 +486,76 @@ class Connection(object):
             Returns the line of *data* received from the socket.
         """
         data = self._readn()
-        if self._debug_socket: print ">:%d:" % len(data), data
+        if len(data) and self._debug_socket: print ">:%d:" % len(data), data
         return data
-
-    write = write_line 
-    """ 
-        Standard function to write to the socket which by default points to write_line
-    """
     
-    read = read_line 
-    """ 
-        Standard function to read from the socket which by default points to read_line
-    """
+    def settimeout(self,op, timeout):
+        if op in self._maxtimeout:
+            maxtimeout = self._maxtimeout[op]
+        else:
+            maxtimeout = None
+            
+        if maxtimeout is not None:
+            if timeout is None or timeout > maxtimeout: timeout = maxtimeout
+            
+        self._sck.settimeout(timeout)
+            
+
+    def write(self, data, timeout = None):
+        """ 
+            Standard function to write to the socket which by default points to write_line
+        """
+        self.settimeout("write",timeout)
+        self.scklock.acquire()
+        ret = None
+        try:
+            ret = self.write_line(data)
+        finally:
+            self.scklock.release()
+        
+        return ret
+    
+    def read(self, timeout = None):
+        """ 
+            Standard function to read from the socket which by default points to read_line
+        """
+        self.settimeout("read",timeout)
+        ret = None
+        self.scklock.acquire()
+        try:
+            ret = self.read_line()
+        finally:
+            self.scklock.release()
+        return ret
 
     def _readn(self):
         buffer = self._buffer
         pos = buffer.find('\n')
         #print "read..."
+        retry = 0
         while pos == -1:
+            data = ''
             try:
                 data = self._sck.recv(2048)
-            except IOError:
+            except IOError, inst:
+                print "Read socket error: IOError (timeout: %s)" % (repr(self._sck.gettimeout()))
+                print inst.args
+                val = inst.args[0]
+                if val == 11: # Res. Temp. not available.
+                    if self._sck.gettimeout() == 0: # if it was too fast
+                        self._sck.settimeout(5)
+                        continue
+                        #time.sleep(0.5)
+                        #retry += 1
+                        #if retry < 10:
+                        #    print "Retry ", retry
+                        #    continue
+                #print traceback.format_exc(0)
+                return ''
+            except socket.error, inst:
+                print "Read socket error: socket.error (timeout: %s)" % (repr(self._sck.gettimeout()))
+                print inst.args
+                #print traceback.format_exc(0)
                 return ''
             except:
                 raise
