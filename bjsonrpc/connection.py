@@ -140,9 +140,46 @@ class Connection(object):
         
     """
     _maxtimeout = {
-        'read' : 5,
-        'write' : 5,
+        'read' : 5,    # default maximum read timeout.
+        'write' : 5,   # default maximum write timeout.
     }
+    
+    @classmethod
+    def setmaxtimeout(cls,op,value):
+        """
+            Set the maximum timeout in seconds for **op** operation.
+            
+            Parameters:
+            
+            **op**
+                The operation which has to be configured. Can be either 'read'
+                or 'write'.
+            
+            **value**
+                The timeout in seconds as a floating number. If is None, will 
+                block until succeed. If is 0, will be nonblocking.
+            
+        """
+        assert(op in ['read','write'])
+        cls._maxtimeout[op] = value
+    
+    @classmethod
+    def getmaxtimeout(cls,op):
+        """
+            Get the maximum timeout in seconds for **op** operation.
+            
+            Parameters:
+            
+            **op**
+                The operation which has to be configured. Can be either 'read'
+                or 'write'.
+            
+            **(return value)**
+                The timeout in seconds as a floating number or None.
+            
+        """
+        if op not in cls._maxtimeout: return None
+        return cls._maxtimeout[op]
     
     call = None 
     """ 
