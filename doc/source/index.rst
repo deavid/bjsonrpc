@@ -12,8 +12,21 @@ Contents:
    :maxdepth: 4
    
    intro
-   tutorial
+   quickstart
+   tutorial1/index
+   howto
    api/index
+
+
+See also the `bjsonrpc website`_ , `bjsonrpc at github`_ and the `bjsonrpc wiki`_.
+
+
+.. _`bjsonrpc website`: http://deavid.github.com/bjsonrpc/
+
+.. _`bjsonrpc at github`: http://github.com/deavid/bjsonrpc/
+
+.. _`bjsonrpc wiki`: https://github.com/deavid/bjsonrpc/wiki
+
 
 Indices and tables
 ==================
