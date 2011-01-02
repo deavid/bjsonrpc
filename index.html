@@ -10,13 +10,17 @@
 	<style type="text/css">
 		body {
   		margin-top: 1.0em;
-  		background-color: #fff;
+  		background-color: #fbfeff;
 		  font-family: "Helvetica,Arial,FreeSans";
   		color: #666;
     }
     #container {
       margin: 0 auto;
       width: 700px;
+      border: #ccc 1px solid;
+      top: 0;
+      padding: 2.5em;
+      
     }
 		h1 { font-size: 3.8em; color: #333; margin-bottom: 3px; }
 		h1 .small { font-size: 0.4em; }
@@ -51,28 +55,55 @@
     <div class="description">
       JSON-RPC pure-python implementation over TCP/IP (asyncronous, bidirectional)
     </div>
-
+    <h2>About</h2>
+    <p><b>bjsonrpc</b> is a implementation of the well-known JSON-RPC protocol
+    over TCP-IP with lots of features. It is aimed at speed and simplicity and
+    it adds some other extensions to JSON-RPC that makes <b>bjsonrpc</b> a very
+    powerful tool as a IPC mechanism over low bandwith.</p>
+    
     <h2>Dependencies</h2>
-<p>python, simplejson</p>
+<p>To use this software you must have (obviously) Python, version 2.5.x (with 
+simplejson) or newer (using internal json library). If you have earlier versions 
+of python 2 i guess it should work, but it is not tested at all.</p>
 <h2>Documentation</h2>
-<p><a href="htmldocs/index.html">complete documentation</a></p>
-<p><a href="http://github.com/deavid/bjsonrpc/wiki">wiki @ github</a></p>
+<ul>
+<li><a href="htmldocs/intro.html">Introduction</a></li>
+<li><a href="htmldocs/quickstart.html">Quickstart</a></li>
+<li><a href="htmldocs/tutorial1/index.html">Basic Tutorial</a></li>
+<li><a href="htmldocs/api/index.html">API documentation</a> (very complete)</li>
+<li><a href="http://github.com/deavid/bjsonrpc/wiki">Wiki at github</a></li>
+</ul>
 <h2>Install</h2>
-<p>sudo python setup.py install</p>
+<p>As any other python package, you should do:</p>
+<pre>user@host:~/src/python/bjsonrpc$ sudo python setup.py install</pre>
+<p>... and the package will get installed on your system.</p>
 <h2>License</h2>
-<p>BSD 3-clause license</p>
-<h2>Authors</h2>
-<p>David Martinez Marti (deavidsedice@gmail.com)
-<br/>
-<br/>      </p>
-<h2>Contact</h2>
-<p>David Martínez Martí (deavidsedice@gmail.com)
-<br/>      </p>
+<p><b>bjsonrpc</b> is licensed under a <em>BSD 3-clause license</em>. You can 
+use this software either for open-source or commercial projects.</p>
+<h2>Authors / Contact</h2>
+<p>You can write a email to the author:</p>
+<ul>
+<li><b>David Mart&iacute;nez Mart&iacute;</b> (deavidsedice@gmail.com)</li>
+</ul>
 
-
-    <h2>Download</h2>
+    <h2>Download / Releases</h2>
     <p>
-      You can download this project in either
+        There aren't any public release yet. 
+        <ul></ul>
+    </p>
+    
+    <h2>Development Versions</h2>
+    <p>There are three branches for choice:</p>
+    <ul>
+        <li><b>devel:</b> This is where goes all things recently coded. Probably
+        they are not tested at all.</li>
+        <li><b>master:</b> This is the code I'm currently using, so it 
+        should work.</li>
+        <li><b>stable:</b> This is the code meant for public release. This is 
+        like a "rolling release".</li>
+    </ul>
+    <p>
+      <b>Stable</b> branch can be downloaded in either
       <a href="http://github.com/deavid/bjsonrpc/zipball/master">zip</a> or
       <a href="http://github.com/deavid/bjsonrpc/tarball/master">tar</a> formats.
     </p>
