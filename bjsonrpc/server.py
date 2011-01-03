@@ -105,8 +105,8 @@ class Server(object):
             connections = []
             connidx = {}
             while True:
-                ready_to_read, ready_to_write, in_error = select.select([self._lstsck]+sockets,[],[],3.0)
-                if not ready_to_read:
+                ready_to_read, ready_to_write, in_error = select.select([self._lstsck]+sockets,[],[],1)
+                """ if not ready_to_read:
                     for c in connections:
                         try:
                             count = c.dispatch_until_empty()
@@ -118,7 +118,7 @@ class Server(object):
                             #print "Closing client conn."
                     
                     #print ". . ."
-                    continue
+                    continue """
                 
             
                 if self._lstsck in ready_to_read:
