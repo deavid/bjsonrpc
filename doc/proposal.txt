@@ -27,6 +27,30 @@ functions = conn.call.getMethodList()
 <-- { 'result' : [{ '__remotefunction__' : 'echo'},{ '__remotefunction__' : 'newList'}], 'id' : 5 }
 # ... might be useful to pre-create functions in class (allows inspection)
 
+# Method pre-requisites (to be sure that a method is processed after another)
+--> { 'method' : 'write' , 'params' : ['blahblah'], 'id' : 2 }
+--> { 'method' : 'write' , 'params' : ['moreblah'], 'id' : 3 }
+--> { 'method' : 'write' , 'params' : ['moremore'], 'id' : 4 }
+--> { 'method' : 'spaceleft' , 'id' : 5 , 'requires' : [2,3,4]}
+Optional values will be: 
+    * string "auto" for telling server to automatically wait 
+to all on-going request when this one is processed.
+    * None/Null, to tell the server to not wait at all.
+    * List of integers of the id's that will be completed before this call is 
+    computed.
+    
+A server is free to implement "auto" or None by default. Some server methods
+could override this default.
+
+# Notification value saving: (will save exceptions/errors too)
+# value names must be unused names. non-sense? how we delete a name? 
+# resultnames are like id's, can be used to wait for that result.
+--> { 'method' : 'spaceleft' , 'resultname' : 'space001'}
+
+
+
+
+
 # computing signatures
 sig = conn.call.getMethodSignature(functions[0])
 # useful to prepopulate arguments (for interactive sessions)
