@@ -338,11 +338,21 @@ class Connection(object):
             if req_object:
                 req_function = req_object._get_method(req_method)
                 result = req_function(*req_args, **req_kwargs)
-        except:
-            if self._debug_dispatch:
-                print
-                print traceback.format_exc()
-                print
+        except Exception, e:
+            print "In Handler function: (%s) %s.%s(%s) " % (
+                req_object.__class__.__module__,
+                req_object.__class__.__name__,
+                req_function.__name__, 
+                ", ".join(
+                        [repr(x) for x in req_args] +  
+                        ["%s=%s" % (k,repr(x)) for k,x in req_kwargs.iteritems()]
+                    )
+                )
+            print "Unhandled error: %s: %s" % (e.__class__.__name__, 
+                ", ".join( [repr(x) for x in e.args ] )
+                )
+            print "\n".join([ repr(x) for x in traceback.extract_stack()])
+            
             if req_id is not None: 
                 return {'result': None, 'error': repr(sys.exc_info()[1]), 'id': req_id}
         
