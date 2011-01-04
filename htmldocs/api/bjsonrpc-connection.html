@@ -119,6 +119,20 @@ serialization.</dd>
 <p>It is mainly used to create internal id&#8217;s for calls.</p>
 </dd></dl>
 
+<dl class="classmethod">
+<dt id="bjsonrpc.connection.Connection.getmaxtimeout">
+<em class="property">classmethod </em><tt class="descname">getmaxtimeout</tt><big>(</big><em>op</em><big>)</big><a class="headerlink" href="#bjsonrpc.connection.Connection.getmaxtimeout" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the maximum timeout in seconds for <strong>op</strong> operation.</p>
+<p>Parameters:</p>
+<dl class="docutils">
+<dt><strong>op</strong></dt>
+<dd>The operation which has to be configured. Can be either &#8216;read&#8217;
+or &#8216;write&#8217;.</dd>
+<dt><strong>(return value)</strong></dt>
+<dd>The timeout in seconds as a floating number or None.</dd>
+</dl>
+</dd></dl>
+
 <dl class="method">
 <dt id="bjsonrpc.connection.Connection.load_object">
 <tt class="descname">load_object</tt><big>(</big><em>obj</em><big>)</big><a class="headerlink" href="#bjsonrpc.connection.Connection.load_object" title="Permalink to this definition">¶</a></dt>
@@ -148,9 +162,9 @@ tells the server to not response even if there&#8217;s any error in the call.</p
 <p>Returns <em>None</em>.</p>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="method">
 <dt id="bjsonrpc.connection.Connection.read">
-<tt class="descname">read</tt><a class="headerlink" href="#bjsonrpc.connection.Connection.read" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">read</tt><big>(</big><em>timeout=None</em><big>)</big><a class="headerlink" href="#bjsonrpc.connection.Connection.read" title="Permalink to this definition">¶</a></dt>
 <dd>Standard function to read from the socket which by default points to read_line</dd></dl>
 
 <dl class="method">
@@ -187,9 +201,29 @@ as two or more messages.</p>
 use server.Server class to do this, but this would be useful too if 
 it is run from a separate Thread.</dd></dl>
 
-<dl class="attribute">
+<dl class="classmethod">
+<dt id="bjsonrpc.connection.Connection.setmaxtimeout">
+<em class="property">classmethod </em><tt class="descname">setmaxtimeout</tt><big>(</big><em>op</em>, <em>value</em><big>)</big><a class="headerlink" href="#bjsonrpc.connection.Connection.setmaxtimeout" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the maximum timeout in seconds for <strong>op</strong> operation.</p>
+<p>Parameters:</p>
+<dl class="docutils">
+<dt><strong>op</strong></dt>
+<dd>The operation which has to be configured. Can be either &#8216;read&#8217;
+or &#8216;write&#8217;.</dd>
+<dt><strong>value</strong></dt>
+<dd>The timeout in seconds as a floating number. If is None, will 
+block until succeed. If is 0, will be nonblocking.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="bjsonrpc.connection.Connection.settimeout">
+<tt class="descname">settimeout</tt><big>(</big><em>op</em>, <em>timeout</em><big>)</big><a class="headerlink" href="#bjsonrpc.connection.Connection.settimeout" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
 <dt id="bjsonrpc.connection.Connection.write">
-<tt class="descname">write</tt><a class="headerlink" href="#bjsonrpc.connection.Connection.write" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">write</tt><big>(</big><em>data</em>, <em>timeout=None</em><big>)</big><a class="headerlink" href="#bjsonrpc.connection.Connection.write" title="Permalink to this definition">¶</a></dt>
 <dd>Standard function to write to the socket which by default points to write_line</dd></dl>
 
 <dl class="method">

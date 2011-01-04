@@ -20,7 +20,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="top" title="bjsonrpc v0.1.x-dev documentation" href="index.html" />
-    <link rel="next" title="Basic Tutorial" href="tutorial.html" />
+    <link rel="next" title="Quickstart" href="quickstart.html" />
     <link rel="prev" title="Welcome to bjsonrpc’s documentation!" href="index.html" /> 
   </head>
   <body>
@@ -34,7 +34,7 @@
           <a href="modindex.html" title="Global Module Index"
              accesskey="M">modules</a> |</li>
         <li class="right" >
-          <a href="tutorial.html" title="Basic Tutorial"
+          <a href="quickstart.html" title="Quickstart"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="index.html" title="Welcome to bjsonrpc’s documentation!"
@@ -50,7 +50,96 @@
             
   <div class="section" id="introduction-to-bjsonrpc">
 <h1>Introduction to bjsonrpc<a class="headerlink" href="#introduction-to-bjsonrpc" title="Permalink to this headline">¶</a></h1>
-<p>blah, blah, first, after, blah, blah</p>
+<div class="section" id="about">
+<h2>About<a class="headerlink" href="#about" title="Permalink to this headline">¶</a></h2>
+<p><em>bjsonrpc</em> is a implementation of the well-known JSON-RPC protocol
+over TCP-IP with lots of features. It is aimed at speed and simplicity and
+it adds some other extensions to JSON-RPC that makes <em>bjsonrpc</em> a very
+powerful tool as a IPC mechanism over low bandwith.</p>
+</div>
+<div class="section" id="basic-design-principles">
+<h2>Basic design principles<a class="headerlink" href="#basic-design-principles" title="Permalink to this headline">¶</a></h2>
+<p>Imagine two computers connected through a network. It could be a reasonably fast
+network (10mbps LAN), a probably faulty network (3mbps WiFi), or maybe a very
+slow connection (1000/300kbps Internet connection). And we want to be able to
+communicate and interact between two programs one on each party.</p>
+<p>Which one is the server (has the listening port) and which one is the client
+(will try to connect the other one) is a decision that matters for most installations.</p>
+<p>For example, a portable device that connects through a Wireless network is better
+to configure it as a client, and a server should be something more reliable
+(a machine with a cable connection, which is running the most of the time).</p>
+<p>But most of the client-server protocol schemes will force you to put the server
+to one specific device, and the client in the other. To be more specific, in
+RPC-like protocols, the server usually must be the one that recieves calls,
+and the client is the one that sends them. This limitation that seems logic,
+isn&#8217;t enough on most professional RPC systems, there are lots of RPC uses that
+require a <em>&#8220;reversed configuration&#8221;</em>, and some other uses require the both things
+at the same time.</p>
+<p><strong>bjsonrpc</strong> is designed from scratch with some of this ideas in mind to overcome
+this limitations (there are several others i&#8217;ll explain later). It uses the
+JSON-RPC protocol over TCP/IP sockets (does not handle nor creates HTTP
+connections), and should be fairly compatible with other JSON (1.0, 1.1) clients
+and servers. In <strong>bjsonrpc</strong> there are two basic rules that aren&#8217;t in the basic
+JSON protocol specification:</p>
+<ul class="simple">
+<li>Client and Server concepts are things about sockets, not about the protocol.
+The <em>only</em> difference between a client and a server is that a client should
+connect to, and a server waits for connections. The rest is <em>exactly the same</em>.
+This is known as bidirectionality. The same message types can be sent from
+both ends.</li>
+<li>There is no guarantee on the return or processing order of RPC calls. That means
+that peers never rely on assumptions like <em>&#8220;if i sent request A and later B,
+i&#8217;ll get A response first, and B will be the next&#8221;</em>. That&#8217;s untrue. Requests
+can be handled in any order, with any priority, and optionally in parallel.
+If you need to execute a request B after a request A is done, you should wait
+for A result. (or at least indicate to the server that this call should wait
+to A request to complete before proceding)</li>
+<li>It is not stateless. <em>bjsonrpc</em> can create stateless peers, but makes it easier
+to create stateful peers, which will be configurable per connection, or will
+require several commands to complete one operation.</li>
+</ul>
+<p>The messages sent are simple JSON objects followed by a newline <em>&#8216;n&#8217;</em> separator.
+You should keep messages as short as you can. That will give you better response
+speed with slow connections. If you plan to send lots of data through a message
+consider dividing them in small parts (about 4K of data per message). Peers could
+have in the future a configurable hard-limit on the message size and could
+either disconnect the socket or discard the message when a message exceeds the
+limit configured.</p>
+<p><em>bjsonrpc</em> implementation aims to:</p>
+<ul class="simple">
+<li>Have a complete bidirectional protocol.</li>
+<li>Virtually remove the network lag.</li>
+<li>Enhance parallel querys (parallel method querying, parallel method dispatching, etc)</li>
+<li>Make very easy to use it as a general IPC mechanism, to control the state of
+the objects of the other peer, to create authentication mechanisms, syncing
+data or lists...</li>
+<li>Minimize the network bandwidth used.</li>
+</ul>
+</div>
+<div class="section" id="disavantages-of-bjsonrpc">
+<h2>Disavantages of bjsonrpc<a class="headerlink" href="#disavantages-of-bjsonrpc" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>The implementation differs from standard, it tries to be compatible, but is not
+always possible.</li>
+<li>At this moment there is only a Pure-python implementation (it would be good to
+have Java, C# and Ruby ones)</li>
+<li>Doesn&#8217;t exist an HTTP implementation (but there are already lots of json-rpc
+libraries with HTTP)</li>
+</ul>
+</div>
+<div class="section" id="examples-of-uses-of-bjsonrpc">
+<h2>Examples of uses of bjsonrpc<a class="headerlink" href="#examples-of-uses-of-bjsonrpc" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>PDA and handheld communication with a central server. Is faster than xmlrpc
+and it allows the server to notify the client if updates of the data are available.</li>
+<li>As a standard communication system between several processes that could be
+on the same machine, or connected somewhere in the net.</li>
+<li>As a notification system (for updates, syslog, etc)</li>
+<li>As a syncronization system (send files, rows, actions, and get files, rows, ...)</li>
+<li>As a remote control for your services. (start, stop, restart .. )</li>
+<li>As a cloud-computing solution.</li>
+</ul>
+</div>
 </div>
 
 
@@ -59,12 +148,23 @@
       </div>
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
+            <h3><a href="index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="#">Introduction to bjsonrpc</a><ul>
+<li><a class="reference external" href="#about">About</a></li>
+<li><a class="reference external" href="#basic-design-principles">Basic design principles</a></li>
+<li><a class="reference external" href="#disavantages-of-bjsonrpc">Disavantages of bjsonrpc</a></li>
+<li><a class="reference external" href="#examples-of-uses-of-bjsonrpc">Examples of uses of bjsonrpc</a></li>
+</ul>
+</li>
+</ul>
+
             <h4>Previous topic</h4>
             <p class="topless"><a href="index.html"
                                   title="previous chapter">Welcome to bjsonrpc&#8217;s documentation!</a></p>
             <h4>Next topic</h4>
-            <p class="topless"><a href="tutorial.html"
-                                  title="next chapter">Basic Tutorial</a></p>
+            <p class="topless"><a href="quickstart.html"
+                                  title="next chapter">Quickstart</a></p>
             <h3>This Page</h3>
             <ul class="this-page-menu">
               <li><a href="_sources/intro.txt"
@@ -97,7 +197,7 @@
           <a href="modindex.html" title="Global Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="tutorial.html" title="Basic Tutorial"
+          <a href="quickstart.html" title="Quickstart"
              >next</a> |</li>
         <li class="right" >
           <a href="index.html" title="Welcome to bjsonrpc’s documentation!"

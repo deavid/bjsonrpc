@@ -1,0 +1,278 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Basic Tutorial &mdash; bjsonrpc v0.1.x-dev documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1.x-dev',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="bjsonrpc v0.1.x-dev documentation" href="../index.html" />
+    <link rel="next" title="HOW-TO’s and examples" href="../howto.html" />
+    <link rel="prev" title="Quickstart" href="../quickstart.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="../howto.html" title="HOW-TO’s and examples"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../quickstart.html" title="Quickstart"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">bjsonrpc v0.1.x-dev documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="basic-tutorial">
+<h1>Basic Tutorial<a class="headerlink" href="#basic-tutorial" title="Permalink to this headline">¶</a></h1>
+<p>Here we&#8217;ll show the basic things you can do with <strong>bjsonrpc</strong>.</p>
+<div class="section" id="create-basic-client-and-server-programs">
+<h2>Create basic client and server programs<a class="headerlink" href="#create-basic-client-and-server-programs" title="Permalink to this headline">¶</a></h2>
+<p>The most basic client and server have only two lines each one. Let&#8217;s see the
+server part:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">bjsonrpc</span>
+<span class="n">bjsonrpc</span><span class="o">.</span><span class="n">createserver</span><span class="p">()</span><span class="o">.</span><span class="n">serve</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>And the client code:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">bjsonrpc</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">bjsonrpc</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>That code already handles the connections and does all for you. You only have to
+add the methods to publish and make use of them.</p>
+<p><em>createserver()</em> method returns a Server instance, and <em>connect()</em> method returns
+a Connection instance. Server instance is useful to configure how the clients
+and new connections will be handled. Connection instance is the main tool for
+calling remote methods.</p>
+<p>Host and port are by default 127.0.0.1:10123 both for client and server examples.</p>
+<p>Let&#8217;s see a example with method calling from client to server. There is the
+server code:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">bjsonrpc.handlers</span> <span class="kn">import</span> <span class="n">BaseHandler</span>
+<span class="kn">from</span> <span class="nn">bjsonrpc</span> <span class="kn">import</span> <span class="n">createserver</span>
+<span class="kn">import</span> <span class="nn">time</span>
+
+<span class="k">class</span> <span class="nc">ServerHandler</span><span class="p">(</span><span class="n">BaseHandler</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">delta</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">start</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span>
+
+<span class="n">s</span> <span class="o">=</span> <span class="n">createserver</span><span class="p">(</span> <span class="n">host</span><span class="o">=</span><span class="s">&quot;0.0.0.0&quot;</span> <span class="p">)</span>
+<span class="n">s</span><span class="o">.</span><span class="n">serve</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Here we have created a Handler for server methods, and we ve declared a method
+called <em>time</em>, which returns the current time as a floating point. Another method
+called <em>delta</em> expects a time argument and returns a quantity of seconds elapsed
+from start. Very simple, isn&#8217;t it?</p>
+<p>Notice that we&#8217;ve specified a host for the server, is where the socket will bind
+to for incoming connections. &#8220;0.0.0.0&#8221; is meant for listening to all interfaces.</p>
+<p>Now, here&#8217;s a client example using those methods:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">bjsonrpc</span> <span class="kn">import</span> <span class="n">connect</span>
+
+<span class="n">c</span> <span class="o">=</span> <span class="n">connect</span><span class="p">()</span>
+<span class="n">time1</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">call</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+<span class="c"># do something here ...</span>
+<span class="k">print</span> <span class="s">&quot;Time:&quot;</span><span class="p">,</span> <span class="n">time1</span>
+<span class="k">print</span> <span class="s">&quot;Delta:&quot;</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">call</span><span class="o">.</span><span class="n">delta</span><span class="p">(</span><span class="n">time1</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>As you can see, calling remote methods is fairly simple. Just use the <em>call</em>
+attribute of the Connection instance, and call the function as it were local.</p>
+<p>Call is a connection proxy: it will send your request to the connection
+internals, and the connection will convert it to JSON. When a response is
+received from the channel, call will return the value received or raise a
+ServerException.</p>
+</div>
+<div class="section" id="connection-proxies">
+<h2>Connection Proxies<a class="headerlink" href="#connection-proxies" title="Permalink to this headline">¶</a></h2>
+<p>A connection proxy is a class that makes it easier to call a remote function.
+By default a connection comes with three connection proxies: call, method and
+notice.</p>
+<p>Here&#8217;s a short description for each one:</p>
+<dl class="docutils">
+<dt><em>connection</em> . <strong>call</strong> . methodname(...)</dt>
+<dd>Calls a remote method named <em>methodname</em> with the args given. It will wait
+and block until a response for this method is received. The result is
+returned as a value or a ServerError is raised if there were errors.</dd>
+<dt><em>connection</em> . <strong>method</strong> . methodname(...)</dt>
+<dd>Calls a remote method named <em>methodname</em> with the args given. Writes to the
+socket and returns without waiting. It returns a Request object which is
+useful to retrieve the return value later.</dd>
+<dt><em>connection</em> . <strong>notify</strong> . methodname(...)</dt>
+<dd>Calls a remote method named <em>methodname</em> with the args given. Writes to the
+socket and returns without waiting. It tells to the server to discard the
+returning value or errors produced by the call.</dd>
+</dl>
+<p>Any server method can be called with any of these 3 proxies. If you don&#8217;t know
+what you should use, start using the <em>call</em> proxy because is the simpler. When
+you need more performance you&#8217;ll should take a look to the other two. <em>Method</em>
+proxy virtually removes the network lag on multiple calls that aren&#8217;t required
+to be executed in serial order. <em>Notify</em> proxy doubles bandwidth the eficiency
+of <em>method</em> removing the return value.</p>
+</div>
+<div class="section" id="stateful-server">
+<h2>Stateful server<a class="headerlink" href="#stateful-server" title="Permalink to this headline">¶</a></h2>
+<p>In addition of standard stateless servers you can code very easily a server
+where a state is hold for the connection. Stateful connections are very good
+for some cases, but try to reduce them at a minimum, because with an eventual
+disconnection you will lose all changes you&#8217;ve made to the handler. So, if you
+need persistence, you should write to disk or to global variables. That is left
+to the developer.</p>
+<p>Here is another server example with states:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">bjsonrpc.handlers</span> <span class="kn">import</span> <span class="n">BaseHandler</span>
+<span class="kn">from</span> <span class="nn">bjsonrpc</span> <span class="kn">import</span> <span class="n">createserver</span>
+
+<span class="k">class</span> <span class="nc">ServerHandler</span><span class="p">(</span><span class="n">BaseHandler</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fifo</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">maxitems</span> <span class="o">=</span> <span class="mi">32</span>
+
+    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">element</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fifo</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">maxitems</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;FIFO maximum capacity reached&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fifo</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fifo</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="n">s</span> <span class="o">=</span> <span class="n">createserver</span><span class="p">(</span> <span class="n">host</span><span class="o">=</span><span class="s">&quot;0.0.0.0&quot;</span> <span class="p">)</span><span class="o">.</span><span class="n">serve</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>There is a special <em>_setup()</em> method to make easier the inheritance. This function
+is called just after <em>__init__()</em> and you don&#8217;t have to call the super function.
+It is the recomended place to write your initialization statements. Every attribute
+you change for the handler instance will be accessible for every method of the
+same connection. Another connection will get another handler instance with different
+values inside.</p>
+<p>An example client for this one could be:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">bjsonrpc</span> <span class="kn">import</span> <span class="n">connect</span>
+
+<span class="n">c</span> <span class="o">=</span> <span class="n">connect</span><span class="p">()</span>
+<span class="n">request_list</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">15</span><span class="p">):</span> <span class="c"># this is done in paralell</span>
+    <span class="n">request_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">method</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+
+<span class="c"># Wait for every request</span>
+<span class="k">for</span> <span class="n">request</span> <span class="ow">in</span> <span class="n">request_list</span><span class="p">:</span> <span class="n">request</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
+    <span class="k">print</span> <span class="n">c</span><span class="o">.</span><span class="n">call</span><span class="o">.</span><span class="n">read</span><span class="p">(),</span>
+<span class="k">print</span>
+
+<span class="c"># there are 5 entries left in the fifo buffer.</span>
+</pre></div>
+</div>
+<p>You will see that even with 5 entries left, repeated calls to the RPC server
+produce the same output. The initial state is the same for every connection.</p>
+<p>If you play with values you could see in the client several exceptions blaming
+about end of capacity on the FIFO (could not write), or no elements to pop from
+the list (could not read). These exceptions can be handled in a general
+try/except clause:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">bjsonrpc</span> <span class="kn">import</span> <span class="n">connect</span>
+<span class="kn">from</span> <span class="nn">bjsonrpc.exceptions</span> <span class="kn">import</span> <span class="n">ServerError</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">connect</span><span class="p">()</span>
+<span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">c</span><span class="o">.</span><span class="n">call</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+    <span class="k">except</span> <span class="n">ServerError</span><span class="p">:</span>
+        <span class="k">break</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="../index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="#">Basic Tutorial</a><ul>
+<li><a class="reference external" href="#create-basic-client-and-server-programs">Create basic client and server programs</a></li>
+<li><a class="reference external" href="#connection-proxies">Connection Proxies</a></li>
+<li><a class="reference external" href="#stateful-server">Stateful server</a></li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="../quickstart.html"
+                                  title="previous chapter">Quickstart</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="../howto.html"
+                                  title="next chapter">HOW-TO&#8217;s and examples</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="../_sources/tutorial1/index.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="../search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../modindex.html" title="Global Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../howto.html" title="HOW-TO’s and examples"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="../quickstart.html" title="Quickstart"
+             >previous</a> |</li>
+        <li><a href="../index.html">bjsonrpc v0.1.x-dev documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2010, David Martínez Martí.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.6.
+    </div>
+  </body>
+</html>
