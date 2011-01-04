@@ -34,7 +34,7 @@
 
 from proxies import Proxy
 from request import Request
-from exceptions import EofError
+from exceptions import EofError, ServerError
 
 import jsonlib as json
 from types import MethodType, FunctionType
@@ -338,23 +338,29 @@ class Connection(object):
             if req_object:
                 req_function = req_object._get_method(req_method)
                 result = req_function(*req_args, **req_kwargs)
+        except ServerError, e:
+            if req_id is not None: 
+                return {'result': None, 'error': '%s' % (e), 'id': req_id}
+        
         except Exception, e:
-            print "In Handler function: (%s) %s.%s(%s) " % (
-                req_object.__class__.__module__,
-                req_object.__class__.__name__,
-                req_function.__name__, 
-                ", ".join(
+            etype, evalue, etb = sys.exc_info()
+            funargs = ", ".join(
                         [repr(x) for x in req_args] +  
                         ["%s=%s" % (k,repr(x)) for k,x in req_kwargs.iteritems()]
                     )
+            if len(funargs) > 40: funargs = funargs[:37] + "..."
+            print "(%s) In Handler method %s.%s(%s) " % (
+                req_object.__class__.__module__,
+                req_object.__class__.__name__,
+                req_function.__name__, 
+                funargs
                 )
-            print "Unhandled error: %s: %s" % (e.__class__.__name__, 
-                ", ".join( [repr(x) for x in e.args ] )
-                )
-            print "\n".join([ repr(x) for x in traceback.extract_stack()])
-            
+            print "\n".join([ "%s::%s:%d %s" % (filename,fnname,lineno,srcline) for filename, lineno, fnname, srcline in traceback.extract_tb(etb)[1:]])
+            print "Unhandled error: %s: %s" % (etype.__name__,evalue)
+                
+            del etb
             if req_id is not None: 
-                return {'result': None, 'error': repr(sys.exc_info()[1]), 'id': req_id}
+                return {'result': None, 'error': '%s: %s' % (etype.__name__,evalue), 'id': req_id}
         
         if req_id is None: return None
         return {'result': result, 'error': None, 'id': req_id}

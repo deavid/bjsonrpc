@@ -39,6 +39,7 @@ except ImportError:
 except ImportError:
     print "FATAL: No suitable json library found!"
     raise
+from pprint import pprint
 
 
 def dumps(argobj, conn):
@@ -46,11 +47,24 @@ def dumps(argobj, conn):
         dumps json object using loaded json library and forwards unknown objects
         to *Connection.dumpObject* function.
     """
-    return j.dumps(argobj, separators = (',', ':'), default=conn.dump_object)
+    ret = None
+    try:
+        ret = j.dumps(argobj, separators = (',', ':'), default=conn.dump_object)
+    except TypeError:
+        pprint(argobj)
+        raise TypeError("The Python object is not serializable to JSON!")
+    return ret
 
 def loads(argobj, conn):
     """
         loads json object using *Connection.load_object* to convert json hinted 
         objects to real objects. 
     """
-    return j.loads(argobj, object_hook=conn.load_object)
+    ret = None
+    try:
+        ret = j.loads(argobj, object_hook=conn.load_object)
+    except ValueError:
+        pprint(argobj)
+        raise ValueError("The String object is not a valid JSON data!")
+    
+    return ret
