@@ -54,7 +54,7 @@
 <span id="bjsonrpc-connection"></span><h1>Module bjsonrpc.connection<a class="headerlink" href="#module-bjsonrpc-connection" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="bjsonrpc.connection.Connection">
-<em class="property">class </em><tt class="descclassname">bjsonrpc.connection.</tt><tt class="descname">Connection</tt><big>(</big><em>socket</em>, <em>address=None</em>, <em>handler_factory=None</em><big>)</big><a class="headerlink" href="#bjsonrpc.connection.Connection" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">bjsonrpc.connection.</tt><tt class="descname">Connection</tt><big>(</big><em>sck</em>, <em>address=None</em>, <em>handler_factory=None</em><big>)</big><a class="headerlink" href="#bjsonrpc.connection.Connection" title="Permalink to this definition">¶</a></dt>
 <dd><p>Represents a communiation tunnel between two parties.</p>
 <p>Parameters:</p>
 <dl class="docutils">
@@ -69,11 +69,10 @@ inform handlers about the peer address.</dd>
 It defaults to <em>NullHandler</em> meaning no public methods will be 
 avaliable to the other end.</dd>
 </dl>
-<dl class="attribute">
-<dt id="bjsonrpc.connection.Connection.call">
-<tt class="descname">call</tt><a class="headerlink" href="#bjsonrpc.connection.Connection.call" title="Permalink to this definition">¶</a></dt>
-<dd>Synchronous Proxy. It forwards your calls to it to the other end, waits
-the response and returns the value.</dd></dl>
+<dl class="method">
+<dt id="bjsonrpc.connection.Connection.addrequest">
+<tt class="descname">addrequest</tt><big>(</big><em>request</em><big>)</big><a class="headerlink" href="#bjsonrpc.connection.Connection.addrequest" title="Permalink to this definition">¶</a></dt>
+<dd>Adds a request to the queue of requests waiting for response.</dd></dl>
 
 <dl class="method">
 <dt id="bjsonrpc.connection.Connection.close">
@@ -92,8 +91,8 @@ process the message.</dd></dl>
 <dd><p>Calls <em>read_and_dispatch</em> method until there are no more messages to
 dispatch in the buffer.</p>
 <p>Returns the number of operations that succeded.</p>
-<p>This method will never block waiting. If there aren&#8217;t any more messages
-that can be processed, it returns.</p>
+<p>This method will never block waiting. If there aren&#8217;t 
+any more messages that can be processed, it returns.</p>
 </dd></dl>
 
 <dl class="method">
@@ -113,19 +112,19 @@ serialization.</dd>
 </dd></dl>
 
 <dl class="method">
-<dt id="bjsonrpc.connection.Connection.getID">
-<tt class="descname">getID</tt><big>(</big><big>)</big><a class="headerlink" href="#bjsonrpc.connection.Connection.getID" title="Permalink to this definition">¶</a></dt>
+<dt id="bjsonrpc.connection.Connection.get_id">
+<tt class="descname">get_id</tt><big>(</big><big>)</big><a class="headerlink" href="#bjsonrpc.connection.Connection.get_id" title="Permalink to this definition">¶</a></dt>
 <dd><p>Retrieves a new ID counter. Each connection has a exclusive ID counter.</p>
 <p>It is mainly used to create internal id&#8217;s for calls.</p>
 </dd></dl>
 
 <dl class="classmethod">
 <dt id="bjsonrpc.connection.Connection.getmaxtimeout">
-<em class="property">classmethod </em><tt class="descname">getmaxtimeout</tt><big>(</big><em>op</em><big>)</big><a class="headerlink" href="#bjsonrpc.connection.Connection.getmaxtimeout" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the maximum timeout in seconds for <strong>op</strong> operation.</p>
+<em class="property">classmethod </em><tt class="descname">getmaxtimeout</tt><big>(</big><em>operation</em><big>)</big><a class="headerlink" href="#bjsonrpc.connection.Connection.getmaxtimeout" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the maximum timeout in seconds for <strong>operation</strong> operation.</p>
 <p>Parameters:</p>
 <dl class="docutils">
-<dt><strong>op</strong></dt>
+<dt><strong>operation</strong></dt>
 <dd>The operation which has to be configured. Can be either &#8216;read&#8217;
 or &#8216;write&#8217;.</dd>
 <dt><strong>(return value)</strong></dt>
@@ -148,24 +147,23 @@ an apropiate object (a specific class) in certain cases.</p>
 </dl>
 </dd></dl>
 
-<dl class="attribute">
-<dt id="bjsonrpc.connection.Connection.method">
-<tt class="descname">method</tt><a class="headerlink" href="#bjsonrpc.connection.Connection.method" title="Permalink to this definition">¶</a></dt>
-<dd>Asynchronous Proxy. It forwards your calls to it to the other end and
-inmediatelly returns a <em>request.Request</em> instance.</dd></dl>
-
-<dl class="attribute">
-<dt id="bjsonrpc.connection.Connection.notify">
-<tt class="descname">notify</tt><a class="headerlink" href="#bjsonrpc.connection.Connection.notify" title="Permalink to this definition">¶</a></dt>
-<dd><p>Notification Proxy. It forwards your calls to it to the other end and
-tells the server to not response even if there&#8217;s any error in the call.</p>
-<p>Returns <em>None</em>.</p>
+<dl class="method">
+<dt id="bjsonrpc.connection.Connection.proxy">
+<tt class="descname">proxy</tt><big>(</big><em>sync_type</em>, <em>name</em>, <em>args</em>, <em>kwargs</em><big>)</big><a class="headerlink" href="#bjsonrpc.connection.Connection.proxy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Call method on server.</p>
+<dl class="docutils">
+<dt>sync_type :: </dt>
+<dd>= 0 .. call method, wait, get response.
+= 1 .. call method, inmediate return of object.
+= 2 .. call notification and exit.</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="bjsonrpc.connection.Connection.read">
 <tt class="descname">read</tt><big>(</big><em>timeout=None</em><big>)</big><a class="headerlink" href="#bjsonrpc.connection.Connection.read" title="Permalink to this definition">¶</a></dt>
-<dd>Standard function to read from the socket which by default points to read_line</dd></dl>
+<dd>Standard function to read from the socket 
+which by default points to read_line</dd></dl>
 
 <dl class="method">
 <dt id="bjsonrpc.connection.Connection.read_and_dispatch">
@@ -176,11 +174,12 @@ argument <em>timeout</em>) and dispatches that message.</p>
 <dl class="docutils">
 <dt><strong>timeout</strong> = None</dt>
 <dd>Timeout in seconds of the read operation. If it is None 
-(or ommitted) then the read will wait until new data is available.</dd>
+(or ommitted) then the read will wait 
+until new data is available.</dd>
 <dt><strong>(return value)</strong></dt>
 <dd>True, in case of the operation has suceeded and <strong>one</strong> message
-has been dispatched. False, if no data or malformed data has beed 
-received.</dd>
+has been dispatched. False, if no data or malformed data has 
+been received.</dd>
 </dl>
 </dd></dl>
 
@@ -203,11 +202,11 @@ it is run from a separate Thread.</dd></dl>
 
 <dl class="classmethod">
 <dt id="bjsonrpc.connection.Connection.setmaxtimeout">
-<em class="property">classmethod </em><tt class="descname">setmaxtimeout</tt><big>(</big><em>op</em>, <em>value</em><big>)</big><a class="headerlink" href="#bjsonrpc.connection.Connection.setmaxtimeout" title="Permalink to this definition">¶</a></dt>
-<dd><p>Set the maximum timeout in seconds for <strong>op</strong> operation.</p>
+<em class="property">classmethod </em><tt class="descname">setmaxtimeout</tt><big>(</big><em>operation</em>, <em>value</em><big>)</big><a class="headerlink" href="#bjsonrpc.connection.Connection.setmaxtimeout" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the maximum timeout in seconds for <strong>operation</strong> operation.</p>
 <p>Parameters:</p>
 <dl class="docutils">
-<dt><strong>op</strong></dt>
+<dt><strong>operation</strong></dt>
 <dd>The operation which has to be configured. Can be either &#8216;read&#8217;
 or &#8216;write&#8217;.</dd>
 <dt><strong>value</strong></dt>
@@ -218,13 +217,20 @@ block until succeed. If is 0, will be nonblocking.</dd>
 
 <dl class="method">
 <dt id="bjsonrpc.connection.Connection.settimeout">
-<tt class="descname">settimeout</tt><big>(</big><em>op</em>, <em>timeout</em><big>)</big><a class="headerlink" href="#bjsonrpc.connection.Connection.settimeout" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<tt class="descname">settimeout</tt><big>(</big><em>operation</em>, <em>timeout</em><big>)</big><a class="headerlink" href="#bjsonrpc.connection.Connection.settimeout" title="Permalink to this definition">¶</a></dt>
+<dd>configures a timeout for the connection for a given operation.
+operation is one of &#8220;read&#8221; or &#8220;write&#8221;</dd></dl>
+
+<dl class="attribute">
+<dt id="bjsonrpc.connection.Connection.socket">
+<tt class="descname">socket</tt><a class="headerlink" href="#bjsonrpc.connection.Connection.socket" title="Permalink to this definition">¶</a></dt>
+<dd>public property that holds the internal socket used.</dd></dl>
 
 <dl class="method">
 <dt id="bjsonrpc.connection.Connection.write">
 <tt class="descname">write</tt><big>(</big><em>data</em>, <em>timeout=None</em><big>)</big><a class="headerlink" href="#bjsonrpc.connection.Connection.write" title="Permalink to this definition">¶</a></dt>
-<dd>Standard function to write to the socket which by default points to write_line</dd></dl>
+<dd>Standard function to write to the socket 
+which by default points to write_line</dd></dl>
 
 <dl class="method">
 <dt id="bjsonrpc.connection.Connection.write_line">
@@ -265,12 +271,6 @@ It is used to retrieve the properties to create the remote object.
 <span class="k">print</span> <span class="nb">list</span><span class="o">.</span><span class="n">call</span><span class="o">.</span><span class="n">getitems</span><span class="p">()</span>
 </pre></div>
 </div>
-<dl class="attribute">
-<dt id="bjsonrpc.connection.RemoteObject.call">
-<tt class="descname">call</tt><a class="headerlink" href="#bjsonrpc.connection.RemoteObject.call" title="Permalink to this definition">¶</a></dt>
-<dd>Synchronous Proxy. It forwards your calls to it to the other end, waits
-the response and returns the value.</dd></dl>
-
 <dl class="method">
 <dt id="bjsonrpc.connection.RemoteObject.close">
 <tt class="descname">close</tt><big>(</big><big>)</big><a class="headerlink" href="#bjsonrpc.connection.RemoteObject.close" title="Permalink to this definition">¶</a></dt>
@@ -280,23 +280,9 @@ it at this time, but after this call we don&#8217;t longer have any access to it
 </dd></dl>
 
 <dl class="attribute">
-<dt id="bjsonrpc.connection.RemoteObject.method">
-<tt class="descname">method</tt><a class="headerlink" href="#bjsonrpc.connection.RemoteObject.method" title="Permalink to this definition">¶</a></dt>
-<dd>Asynchronous Proxy. It forwards your calls to it to the other end and
-inmediatelly returns a <em>request.Request</em> instance.</dd></dl>
-
-<dl class="attribute">
-<dt id="bjsonrpc.connection.RemoteObject.name">
-<tt class="descname">name</tt><a class="headerlink" href="#bjsonrpc.connection.RemoteObject.name" title="Permalink to this definition">¶</a></dt>
-<dd>Name of the object in the server-side.</dd></dl>
-
-<dl class="attribute">
-<dt id="bjsonrpc.connection.RemoteObject.notify">
-<tt class="descname">notify</tt><a class="headerlink" href="#bjsonrpc.connection.RemoteObject.notify" title="Permalink to this definition">¶</a></dt>
-<dd><p>Notification Proxy. It forwards your calls to it to the other end and
-tells the server to not response even if there&#8217;s any error in the call.</p>
-<p>Returns <em>None</em>.</p>
-</dd></dl>
+<dt id="bjsonrpc.connection.RemoteObject.connection">
+<tt class="descname">connection</tt><a class="headerlink" href="#bjsonrpc.connection.RemoteObject.connection" title="Permalink to this definition">¶</a></dt>
+<dd>Public property to get the internal connection object.</dd></dl>
 
 </dd></dl>
 

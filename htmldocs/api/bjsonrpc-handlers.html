@@ -69,13 +69,50 @@
     <span class="k">def</span> <span class="nf">getcount</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">return</span> <span class="n">c</span>
 </pre></div>
 </div>
+<dl class="method">
+<dt id="bjsonrpc.handlers.BaseHandler.add_method">
+<tt class="descname">add_method</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#bjsonrpc.handlers.BaseHandler.add_method" title="Permalink to this definition">¶</a></dt>
+<dd>Porcelain for publishing methods into the handler. Is used by the
+constructor itself to publish all non-private functions.</dd></dl>
+
+<dl class="method">
+<dt id="bjsonrpc.handlers.BaseHandler.close">
+<tt class="descname">close</tt><big>(</big><big>)</big><a class="headerlink" href="#bjsonrpc.handlers.BaseHandler.close" title="Permalink to this definition">¶</a></dt>
+<dd>Cleans some variables before the object is freed. _close is called
+manually from connection whenever a handler is going to be deleted.</dd></dl>
+
+<dl class="method">
+<dt id="bjsonrpc.handlers.BaseHandler.get_method">
+<tt class="descname">get_method</tt><big>(</big><em>name</em><big>)</big><a class="headerlink" href="#bjsonrpc.handlers.BaseHandler.get_method" title="Permalink to this definition">¶</a></dt>
+<dd>Porcelain for resolving method objects from their names. Used by
+connections to get the apropiate method object.</dd></dl>
+
 </dd></dl>
 
 <dl class="class">
 <dt id="bjsonrpc.handlers.NullHandler">
 <em class="property">class </em><tt class="descclassname">bjsonrpc.handlers.</tt><tt class="descname">NullHandler</tt><big>(</big><em>connection</em><big>)</big><a class="headerlink" href="#bjsonrpc.handlers.NullHandler" title="Permalink to this definition">¶</a></dt>
-<dd>Null version of BaseHandler which has nothing in it. Use this when you
-don&#8217;t want to publish any function.</dd></dl>
+<dd><p>Null version of BaseHandler which has nothing in it. Use this when you
+don&#8217;t want to publish any function.</p>
+<dl class="method">
+<dt id="bjsonrpc.handlers.NullHandler.add_method">
+<tt class="descname">add_method</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#bjsonrpc.handlers.NullHandler.add_method" title="Permalink to this definition">¶</a></dt>
+<dd>Porcelain for publishing methods into the handler. Is used by the
+constructor itself to publish all non-private functions.</dd></dl>
+
+<dl class="method">
+<dt id="bjsonrpc.handlers.NullHandler.close">
+<tt class="descname">close</tt><big>(</big><big>)</big><a class="headerlink" href="#bjsonrpc.handlers.NullHandler.close" title="Permalink to this definition">¶</a></dt>
+<dd>Cleans some variables before the object is freed. _close is called
+manually from connection whenever a handler is going to be deleted.</dd></dl>
+
+<dl class="method">
+<dt id="bjsonrpc.handlers.NullHandler.get_method">
+<tt class="descname">get_method</tt><big>(</big><em>name</em><big>)</big><a class="headerlink" href="#bjsonrpc.handlers.NullHandler.get_method" title="Permalink to this definition">¶</a></dt>
+<dd>Porcelain for resolving method objects from their names. Used by
+connections to get the apropiate method object.</dd></dl>
+
+</dd></dl>
 
 </div>
 

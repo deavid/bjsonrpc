@@ -43,11 +43,22 @@
 
    <h1 id="index">Index</h1>
 
-   <a href="#B"><strong>B</strong></a> | <a href="#C"><strong>C</strong></a> | <a href="#D"><strong>D</strong></a> | <a href="#E"><strong>E</strong></a> | <a href="#G"><strong>G</strong></a> | <a href="#L"><strong>L</strong></a> | <a href="#M"><strong>M</strong></a> | <a href="#N"><strong>N</strong></a> | <a href="#P"><strong>P</strong></a> | <a href="#R"><strong>R</strong></a> | <a href="#S"><strong>S</strong></a> | <a href="#V"><strong>V</strong></a> | <a href="#W"><strong>W</strong></a> 
+   <a href="#A"><strong>A</strong></a> | <a href="#B"><strong>B</strong></a> | <a href="#C"><strong>C</strong></a> | <a href="#D"><strong>D</strong></a> | <a href="#E"><strong>E</strong></a> | <a href="#G"><strong>G</strong></a> | <a href="#L"><strong>L</strong></a> | <a href="#N"><strong>N</strong></a> | <a href="#P"><strong>P</strong></a> | <a href="#R"><strong>R</strong></a> | <a href="#S"><strong>S</strong></a> | <a href="#V"><strong>V</strong></a> | <a href="#W"><strong>W</strong></a> 
 
    <hr />
 
    
+<h2 id="A">A</h2>
+<table width="100%" class="indextable"><tr><td width="33%" valign="top">
+<dl>
+
+<dt><a href="api/bjsonrpc-handlers.html#bjsonrpc.handlers.BaseHandler.add_method">add_method() (bjsonrpc.handlers.BaseHandler method)</a></dt>
+  <dd><dl>
+    <dt><a href="api/bjsonrpc-handlers.html#bjsonrpc.handlers.NullHandler.add_method">(bjsonrpc.handlers.NullHandler method)</a></dt>
+  </dl></dd></dl></td><td width="33%" valign="top"><dl>
+<dt><a href="api/bjsonrpc-connection.html#bjsonrpc.connection.Connection.addrequest">addrequest() (bjsonrpc.connection.Connection method)</a></dt>
+</dl></td></tr></table>
+
 <h2 id="B">B</h2>
 <table width="100%" class="indextable"><tr><td width="33%" valign="top">
 <dl>
@@ -60,15 +71,14 @@
 <table width="100%" class="indextable"><tr><td width="33%" valign="top">
 <dl>
 
-<dt><a href="api/bjsonrpc-connection.html#bjsonrpc.connection.Connection.call">call (bjsonrpc.connection.Connection attribute)</a></dt>
-  <dd><dl>
-    <dt><a href="api/bjsonrpc-connection.html#bjsonrpc.connection.RemoteObject.call">(bjsonrpc.connection.RemoteObject attribute)</a></dt>
-  </dl></dd>
 <dt><a href="api/bjsonrpc-connection.html#bjsonrpc.connection.Connection.close">close() (bjsonrpc.connection.Connection method)</a></dt>
   <dd><dl>
     <dt><a href="api/bjsonrpc-connection.html#bjsonrpc.connection.RemoteObject.close">(bjsonrpc.connection.RemoteObject method)</a></dt>
-  </dl></dd></dl></td><td width="33%" valign="top"><dl>
-<dt><a href="api/index.html#bjsonrpc.connect">connect() (in module bjsonrpc)</a></dt>
+    <dt><a href="api/bjsonrpc-handlers.html#bjsonrpc.handlers.BaseHandler.close">(bjsonrpc.handlers.BaseHandler method)</a></dt>
+    <dt><a href="api/bjsonrpc-handlers.html#bjsonrpc.handlers.NullHandler.close">(bjsonrpc.handlers.NullHandler method)</a></dt>
+  </dl></dd>
+<dt><a href="api/index.html#bjsonrpc.connect">connect() (in module bjsonrpc)</a></dt></dl></td><td width="33%" valign="top"><dl>
+<dt><a href="api/bjsonrpc-connection.html#bjsonrpc.connection.RemoteObject.connection">connection (bjsonrpc.connection.RemoteObject attribute)</a></dt>
 <dt><a href="api/bjsonrpc-connection.html#bjsonrpc.connection.Connection">Connection (class in bjsonrpc.connection)</a></dt>
 <dt><a href="api/index.html#bjsonrpc.createserver">createserver() (in module bjsonrpc)</a></dt>
 </dl></td></tr></table>
@@ -96,8 +106,12 @@
 <table width="100%" class="indextable"><tr><td width="33%" valign="top">
 <dl>
 
-<dt><a href="api/bjsonrpc-connection.html#bjsonrpc.connection.Connection.getID">getID() (bjsonrpc.connection.Connection method)</a></dt>
-<dt><a href="api/bjsonrpc-connection.html#bjsonrpc.connection.Connection.getmaxtimeout">getmaxtimeout() (bjsonrpc.connection.Connection class method)</a></dt></dl></td><td width="33%" valign="top"><dl>
+<dt><a href="api/bjsonrpc-connection.html#bjsonrpc.connection.Connection.get_id">get_id() (bjsonrpc.connection.Connection method)</a></dt>
+<dt><a href="api/bjsonrpc-handlers.html#bjsonrpc.handlers.BaseHandler.get_method">get_method() (bjsonrpc.handlers.BaseHandler method)</a></dt>
+  <dd><dl>
+    <dt><a href="api/bjsonrpc-handlers.html#bjsonrpc.handlers.NullHandler.get_method">(bjsonrpc.handlers.NullHandler method)</a></dt>
+  </dl></dd></dl></td><td width="33%" valign="top"><dl>
+<dt><a href="api/bjsonrpc-connection.html#bjsonrpc.connection.Connection.getmaxtimeout">getmaxtimeout() (bjsonrpc.connection.Connection class method)</a></dt>
 </dl></td></tr></table>
 
 <h2 id="L">L</h2>
@@ -108,33 +122,19 @@
 <dt><a href="api/bjsonrpc-jsonlib.html#bjsonrpc.jsonlib.loads">loads() (in module bjsonrpc.jsonlib)</a></dt></dl></td><td width="33%" valign="top"><dl>
 </dl></td></tr></table>
 
-<h2 id="M">M</h2>
-<table width="100%" class="indextable"><tr><td width="33%" valign="top">
-<dl>
-
-<dt><a href="api/bjsonrpc-connection.html#bjsonrpc.connection.Connection.method">method (bjsonrpc.connection.Connection attribute)</a></dt>
-  <dd><dl>
-    <dt><a href="api/bjsonrpc-connection.html#bjsonrpc.connection.RemoteObject.method">(bjsonrpc.connection.RemoteObject attribute)</a></dt>
-  </dl></dd></dl></td><td width="33%" valign="top"><dl>
-</dl></td></tr></table>
-
 <h2 id="N">N</h2>
 <table width="100%" class="indextable"><tr><td width="33%" valign="top">
 <dl>
 
-<dt><a href="api/bjsonrpc-connection.html#bjsonrpc.connection.RemoteObject.name">name (bjsonrpc.connection.RemoteObject attribute)</a></dt>
-<dt><a href="api/bjsonrpc-connection.html#bjsonrpc.connection.Connection.notify">notify (bjsonrpc.connection.Connection attribute)</a></dt>
-  <dd><dl>
-    <dt><a href="api/bjsonrpc-connection.html#bjsonrpc.connection.RemoteObject.notify">(bjsonrpc.connection.RemoteObject attribute)</a></dt>
-  </dl></dd></dl></td><td width="33%" valign="top"><dl>
-<dt><a href="api/bjsonrpc-handlers.html#bjsonrpc.handlers.NullHandler">NullHandler (class in bjsonrpc.handlers)</a></dt>
+<dt><a href="api/bjsonrpc-handlers.html#bjsonrpc.handlers.NullHandler">NullHandler (class in bjsonrpc.handlers)</a></dt></dl></td><td width="33%" valign="top"><dl>
 </dl></td></tr></table>
 
 <h2 id="P">P</h2>
 <table width="100%" class="indextable"><tr><td width="33%" valign="top">
 <dl>
 
-<dt><a href="api/bjsonrpc-proxies.html#bjsonrpc.proxies.Proxy">Proxy (class in bjsonrpc.proxies)</a></dt></dl></td><td width="33%" valign="top"><dl>
+<dt><a href="api/bjsonrpc-proxies.html#bjsonrpc.proxies.Proxy">Proxy (class in bjsonrpc.proxies)</a></dt>
+<dt><a href="api/bjsonrpc-connection.html#bjsonrpc.connection.Connection.proxy">proxy() (bjsonrpc.connection.Connection method)</a></dt></dl></td><td width="33%" valign="top"><dl>
 </dl></td></tr></table>
 
 <h2 id="R">R</h2>
@@ -157,10 +157,11 @@
     <dt><a href="api/bjsonrpc-server.html#bjsonrpc.server.Server.serve">(bjsonrpc.server.Server method)</a></dt>
   </dl></dd>
 <dt><a href="api/bjsonrpc-server.html#bjsonrpc.server.Server">Server (class in bjsonrpc.server)</a></dt>
-<dt><a href="api/bjsonrpc-exceptions.html#bjsonrpc.exceptions.ServerError">ServerError</a></dt></dl></td><td width="33%" valign="top"><dl>
-<dt><a href="api/bjsonrpc-connection.html#bjsonrpc.connection.Connection.setmaxtimeout">setmaxtimeout() (bjsonrpc.connection.Connection class method)</a></dt>
-<dt><a href="api/bjsonrpc-request.html#bjsonrpc.request.Request.setResponse">setResponse() (bjsonrpc.request.Request method)</a></dt>
+<dt><a href="api/bjsonrpc-exceptions.html#bjsonrpc.exceptions.ServerError">ServerError</a></dt>
+<dt><a href="api/bjsonrpc-connection.html#bjsonrpc.connection.Connection.setmaxtimeout">setmaxtimeout() (bjsonrpc.connection.Connection class method)</a></dt></dl></td><td width="33%" valign="top"><dl>
+<dt><a href="api/bjsonrpc-request.html#bjsonrpc.request.Request.setresponse">setresponse() (bjsonrpc.request.Request method)</a></dt>
 <dt><a href="api/bjsonrpc-connection.html#bjsonrpc.connection.Connection.settimeout">settimeout() (bjsonrpc.connection.Connection method)</a></dt>
+<dt><a href="api/bjsonrpc-connection.html#bjsonrpc.connection.Connection.socket">socket (bjsonrpc.connection.Connection attribute)</a></dt>
 </dl></td></tr></table>
 
 <h2 id="V">V</h2>
