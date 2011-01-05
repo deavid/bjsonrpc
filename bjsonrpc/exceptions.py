@@ -39,4 +39,8 @@ class ServerError(Exception):
     pass
 
 class EofError(Exception):
+    """
+        End-of-file error raised whenever the socket reaches the 
+        end of the sream.
+    """
     pass    

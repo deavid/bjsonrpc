@@ -32,6 +32,7 @@
 
 """
 import re
+from types import MethodType
     
 class BaseHandler(object):
     """
@@ -50,17 +51,29 @@ class BaseHandler(object):
                     
                 def getcount(self): return c
     """
-    public_methods_pattern = r'^[a-z]\w+$'
     
+    public_methods_pattern = r'^[a-z]\w+$'
+    # Pattern to know which methods should be automatically published
+    
+    nonpublic_methods = [
+        "close",
+        "add_method",
+        "get_method",
+        ] 
+    # List of method names that never should be published    
+        
     def __init__(self, connection):
-        if hasattr(connection,"_conn"): self._conn = connection._conn
-        self._conn = connection
+        if hasattr(connection,"connection"): 
+            self._conn = connection.connection
+        else:
+            self._conn = connection
+            
         self._methods = {}
         for mname in dir(self):
-            if re.match(self.public_methods_pattern,mname):
-                fn = getattr(self,mname)
-                if type(fn) is type(self.__init__):
-                    self._add_method(fn)
+            if re.match(self.public_methods_pattern, mname):
+                function = getattr(self, mname)
+                if isinstance(function, MethodType):
+                    self.add_method(function)
             
         self._setup()
         
@@ -71,19 +84,35 @@ class BaseHandler(object):
         """
         pass 
         
-    def _close(self):
+    def close(self):
+        """
+            Cleans some variables before the object is freed. _close is called
+            manually from connection whenever a handler is going to be deleted.
+        """
         self._methods = {}
 
-    def _add_method(self, *args, **kwargs):
-        for fn in args:
-            assert(fn.__name__ not in self._methods)
-            self._methods[fn.__name__] = fn
+    def add_method(self, *args, **kwargs):
+        """
+            Porcelain for publishing methods into the handler. Is used by the
+            constructor itself to publish all non-private functions.
+        """
+        for method in args:
+            if method.__name__ in self.nonpublic_methods: 
+                continue
+            assert(method.__name__ not in self._methods)
+            self._methods[method.__name__] = method
             
-        for name,fn in kwargs.iteritems():
+        for name, method in kwargs.iteritems():
+            if method.__name__ in self.nonpublic_methods: 
+                continue
             assert(name not in self._methods)
-            self._methods[name] = fn
+            self._methods[name] = method
 
-    def _get_method(self, name):
+    def get_method(self, name):
+        """
+            Porcelain for resolving method objects from their names. Used by
+            connections to get the apropiate method object.
+        """
         if name not in self._methods:
             raise ValueError("Unkown method %s" % repr(name))
             
@@ -96,4 +125,4 @@ class NullHandler(BaseHandler):
         don't want to publish any function.
     """
     pass
-        
+

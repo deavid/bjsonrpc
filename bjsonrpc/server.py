@@ -33,8 +33,8 @@
 """
 import socket, select
 
-from connection import Connection
-from exceptions import EofError
+from bjsonrpc.connection import Connection
+from bjsonrpc.exceptions import EofError
 
 class Server(object):
     """
@@ -62,7 +62,7 @@ class Server(object):
         self._debug_socket = False
         self._debug_dispatch = False
     
-    def debug_socket(self,value = None):
+    def debug_socket(self, value = None):
         """
             Sets or retrieves the internal debug_socket value.
             
@@ -72,11 +72,13 @@ class Server(object):
             
             By default is set to *False*
         """
-        r = self._debug_socket 
-        if type(value) is bool: self._debug_socket = value
-        return r
+        retval = self._debug_socket 
+        if type(value) is bool: 
+            self._debug_socket = value
+            
+        return retval
     
-    def debug_dispatch(self,value = None):
+    def debug_dispatch(self, value = None):
         """
             Sets or retrieves the internal debug_dispatch value.
             
@@ -86,9 +88,11 @@ class Server(object):
             
             By default is set to *False*
         """
-        r = self._debug_dispatch 
-        if type(value) is bool: self._debug_dispatch = value
-        return r
+        ret = self._debug_dispatch 
+        if type(value) is bool: 
+            self._debug_dispatch = value
+            
+        return ret
         
     def serve(self):
         """
@@ -97,56 +101,53 @@ class Server(object):
             etc.
             
             It is coded using *select.select* function, and it is capable to 
-            serve to an unlimited amount of connections at same time without using
-            threading.
+            serve to an unlimited amount of connections at same time 
+            without using threading.
         """
         try:
             sockets = []
             connections = []
             connidx = {}
             while True:
-                ready_to_read, ready_to_write, in_error = select.select([self._lstsck]+sockets,[],[],1)
-                """ if not ready_to_read:
-                    for c in connections:
-                        try:
-                            count = c.dispatch_until_empty()
-                            if count:
-                                print "!!!", count
-                        except EofError:
-                            c.close()
-                            connections.remove(c)
-                            #print "Closing client conn."
-                    
-                    #print ". . ."
-                    continue """
-                
+                ready_to_read = select.select( 
+                    rlist = [self._lstsck]+sockets, # read
+                    wlist = [], xlist = [],
+                    timeout = 1
+                    )[0]
             
                 if self._lstsck in ready_to_read:
                     clientsck, clientaddr = self._lstsck.accept()
                     sockets.append(clientsck)
             
-                    c = Connection(socket = clientsck, address = clientaddr, handler_factory = self._handler)
-                    connidx[clientsck.fileno()] = c
-                    c._debug_socket = self._debug_socket
-                    c._debug_dispatch = self._debug_socket
+                    conn = Connection(
+                            socket = clientsck, address = clientaddr, 
+                            handler_factory = self._handler
+                            )
+                    connidx[clientsck.fileno()] = conn
+                    conn._debug_socket = self._debug_socket
+                    conn._debug_dispatch = self._debug_socket
                     
-                    connections.append(c)
+                    connections.append(conn)
                 
                 for sck in ready_to_read:
                     fileno = sck.fileno()
-                    if fileno not in connidx: continue
-                    c = connidx[fileno]
+                    if fileno not in connidx: 
+                        continue
+                        
+                    conn = connidx[fileno]
                     try:
-                        c.dispatch_until_empty()
+                        conn.dispatch_until_empty()
                     except EofError:
-                        c.close()
-                        sockets.remove(c._sck)
-                        connections.remove(c)
+                        conn.close()
+                        sockets.remove(conn.socket)
+                        connections.remove(conn)
                         #print "Closing client conn."
                     
 
         finally:
-            for c in connections: c.close()
+            for conn in connections: 
+                conn.close()
+                
             self._lstsck.shutdown(socket.SHUT_RDWR)
             self._lstsck.close()
-        
+

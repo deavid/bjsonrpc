@@ -4,36 +4,24 @@
     Copyright (c) 2010 David Martinez Marti
     All rights reserved.
 
-    Licensed under 3-clause BSD License. See LICENSE.txt for the full license text.
+    Licensed under 3-clause BSD License. 
+    See LICENSE.txt for the full license text.
 
 """
 
 import socket
-import sys
-import inspect, traceback
+
+import bjsonrpc.server
+import bjsonrpc.connection
+import bjsonrpc.handlers
 
 __all__ = [
     "createserver",
     "connect",
-    "server",
-    "connection",
-    "request",
-    "handlers",
-    "proxies",
-    "jsonlib",
-    "exceptions"
 ]
 
-import server
-import connection
-import request
-import handlers
-import proxies
-import jsonlib
-import exceptions
-
-
-def createserver(host="127.0.0.1", port=10123, handler_factory=handlers.NullHandler):
+def createserver(host="127.0.0.1", port=10123, 
+    handler_factory=bjsonrpc.handlers.NullHandler):
     """
         Creates a *bjson.server.Server* object linked to a listening socket.
         
@@ -63,15 +51,16 @@ def createserver(host="127.0.0.1", port=10123, handler_factory=handlers.NullHand
             
         Check :ref:`bjsonrpc.server` documentation
     """
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    sck = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sck.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
-    s.bind((host, port))
-    s.listen(3) 
-    return server.Server(s,handler_factory=handler_factory)
+    sck.bind((host, port))
+    sck.listen(3) 
+    return bjsonrpc.server.Server(sck, handler_factory=handler_factory)
         
         
-def connect(host="127.0.0.1", port=10123, handler_factory=handlers.NullHandler):
+def connect(host="127.0.0.1", port=10123, 
+    handler_factory=bjsonrpc.handlers.NullHandler):
     """
         Creates a *bjson.connection.Connection* object linked to a connected
         socket.
@@ -99,9 +88,10 @@ def connect(host="127.0.0.1", port=10123, handler_factory=handlers.NullHandler):
             conn = bjsonrpc.connect("rpc.host.net")
             print conn.call.some_method_in_server_side()
     """
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.connect((host, port))
-    return connection.Connection(s,handler_factory=handler_factory)
+    sck = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sck.connect((host, port))
+    return bjsonrpc.connection.Connection(sck, 
+        handler_factory=handler_factory)
         
 
 

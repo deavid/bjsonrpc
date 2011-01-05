@@ -31,7 +31,6 @@
     POSSIBILITY OF SUCH DAMAGE.
 
 """
-
 try:
     import simplejson as j
 except ImportError:

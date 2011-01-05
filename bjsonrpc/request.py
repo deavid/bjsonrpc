@@ -33,9 +33,10 @@
 """
 
 from threading import Event
-from exceptions import ServerError
 import traceback
-import jsonlib as json
+
+from bjsonrpc.exceptions import ServerError
+import bjsonrpc.jsonlib as json
 
 class Request(object):
     """
@@ -56,20 +57,21 @@ class Request(object):
         self.conn = conn
         self.data = request_data
         self.response = None
-        self.eventResponse = Event()
+        self.event_response = Event()
         self.callbacks = []
-        self.thread_wait = self.eventResponse.wait
-        self.id = None
-        if 'id' in self.data: self.id = self.data['id']
-        if self.id:
-            assert(self.id not in self.conn._requests)
-            self.conn._requests[self.id] = self
+        self.thread_wait = self.event_response.wait
+        self.request_id = None
+        if 'id' in self.data: 
+            self.request_id = self.data['id']
             
-        data = json.dumps(self.data,self.conn)
+        if self.request_id:
+            self.conn.addrequest(self)
+            
+        data = json.dumps(self.data, self.conn)
 
         self.conn.write(data)
         
-    def setResponse(self,value):
+    def setresponse(self, value):
         """
             Method used by Connection instance to tell Request that a Response
             is available to this request. 
@@ -83,11 +85,11 @@ class Request(object):
         for callback in self.callbacks: 
             try:
                 callback(self)
-            except:
-                print "Error on callback." 
+            except Exception, exc:
+                print "Error on callback.", repr(exc)
                 print traceback.format_exc()
                 
-        self.eventResponse.set() # helper for threads.
+        self.event_response.set() # helper for threads.
     
     def wait(self):
         """

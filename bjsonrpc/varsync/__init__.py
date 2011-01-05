@@ -14,29 +14,34 @@
     Proposed Types:
     
     * FloatSync: floating point number synced over network
-        - sync_mode:  fixed master-slave, dynamic master-slave, queued master-master
+        - sync_mode:  fixed master-slave, dynamic master-slave, 
+            queued master-master
         - get, set(value)
         - apply(operator, value) -- sum 3, mult 1.5, set 6 ...
         - addcallback(fn), removecallback(fn)
         
     * TupleSync: Tuple synced over network
-        - sync_mode:  fixed master-slave, dynamic master-slave, queued master-master
+        - sync_mode:  fixed master-slave, dynamic master-slave, 
+            queued master-master
         - get, set(value)
         - addcallback(fn), removecallback(fn)
         
     * StringSync: (small) String synced over network
-        - sync_mode:  fixed master-slave, dynamic master-slave, queued master-master
+        - sync_mode:  fixed master-slave, dynamic master-slave, 
+            queued master-master
         - get, set(value)
         - addcallback(fn), removecallback(fn)
         
     * DictSync: dict of elements synced over network
-        - sync_mode:  fixed master-slave, dynamic master-slave, queued master-master
+        - sync_mode:  fixed master-slave, dynamic master-slave, 
+            queued master-master
         - get(x), set(x,value)
         - apply(x, operator, value)        
         - addcallback(fn), removecallback(fn)
 
     * ListSync: list of elements synced over network.
-        - sync_mode:  fixed master-slave, dynamic master-slave, queued master-master
+        - sync_mode:  fixed master-slave, dynamic master-slave, 
+            queued master-master
         - primary_key: index, full-item, dict-column, list-index
         - item_style: single-object, list, dict
         - clear
