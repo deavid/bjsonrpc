@@ -110,9 +110,9 @@ class Server(object):
             connidx = {}
             while True:
                 ready_to_read = select.select( 
-                    rlist = [self._lstsck]+sockets, # read
-                    wlist = [], xlist = [],
-                    timeout = 1
+                    [self._lstsck]+sockets, # read
+                    [], [], # write, errors
+                    1 # timeout
                     )[0]
             
                 if self._lstsck in ready_to_read:
@@ -120,7 +120,7 @@ class Server(object):
                     sockets.append(clientsck)
             
                     conn = Connection(
-                            socket = clientsck, address = clientaddr, 
+                            sck = clientsck, address = clientaddr, 
                             handler_factory = self._handler
                             )
                     connidx[clientsck.fileno()] = conn

@@ -51,7 +51,8 @@ def dumps(argobj, conn):
         ret = j.dumps(argobj, separators = (',', ':'), default=conn.dump_object)
     except TypeError:
         pprint(argobj)
-        raise TypeError("The Python object is not serializable to JSON!")
+        raise
+        #raise TypeError("The Python object is not serializable to JSON!")
     return ret
 
 def loads(argobj, conn):
@@ -64,6 +65,7 @@ def loads(argobj, conn):
         ret = j.loads(argobj, object_hook=conn.load_object)
     except ValueError:
         pprint(argobj)
-        raise ValueError("The String object is not a valid JSON data!")
+        raise
+        #raise ValueError("The String object is not a valid JSON data!")
     
     return ret

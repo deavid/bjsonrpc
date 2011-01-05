@@ -297,22 +297,24 @@ class Connection(object): # TODO: Split this class in simple ones
         if type(obj) is FunctionType or type(obj) is MethodType :
             conn = getattr(obj, '_conn', None)
             if conn != self: 
-                raise TypeError
+                raise TypeError("Tried to serialize as JSON a handler for "
+                "another connection!")
             return self._dump_functionreference(obj)
             
         if not isinstance(obj, object): 
-            raise TypeError
+            raise TypeError("JSON objects must be new-style classes")
             
         if not hasattr(obj, '__class__'): 
-            raise TypeError
+            raise TypeError("JSON objects must be instances, not types")
             
         if isinstance(obj, RemoteObject): 
             return self._dump_objectreference(obj)
             
-        if hasattr(obj, '_get_method'): 
+        if hasattr(obj, 'get_method'): 
             return self._dump_remoteobject(obj)
             
-        raise TypeError
+        raise TypeError("Python object %s laks a 'get_method' and "
+            "is not serializable!" % repr(obj))
 
     def _dump_functionreference(self, obj):
         """ Converts obj to a JSON hinted-class functionreference"""
@@ -458,16 +460,20 @@ class Connection(object): # TODO: Split this class in simple ones
         data = self.read(timeout=timeout)
         if not data: 
             return False 
-            
-        item = json.loads(data, self)  
-        if type(item) is list: # batch call
-            for i in item: 
-                self.dispatch_item(i)
-        elif type(item) is dict: # std call
-            self.dispatch_item(item)
-        else: # Unknown format :-(
-            print "Received message with unknown format type:" , type(item)
+        try:
+            item = json.loads(data, self)  
+            if type(item) is list: # batch call
+                for i in item: 
+                    self.dispatch_item(i)
+            elif type(item) is dict: # std call
+                self.dispatch_item(item)
+            else: # Unknown format :-(
+                print "Received message with unknown format type:" , type(item)
+                return False
+        except Exception:
+            print traceback.format_exc()
             return False
+            
         return True
         
             
