@@ -124,9 +124,7 @@ class Connection(object): # TODO: Split this class in simple ones
     """ 
         Represents a communiation tunnel between two parties.
         
-        Parameters:
-        
-        **socket**
+        **sck**
             Connected socket to use. Should be an instance of *socket.socket* or
             something compatible.
         
@@ -377,43 +375,42 @@ class Connection(object): # TODO: Split this class in simple ones
         else:
             req_object = self.handler
             
-        try:
-            if req_object:
+        if req_object:
+            try:
                 req_function = req_object.get_method(req_method)
                 result = req_function(*req_args, **req_kwargs)
-        except ServerError, exc:
-            if req_id is not None: 
-                return {'result': None, 'error': '%s' % (exc), 'id': req_id}
-        
-        except Exception:
-            etype, evalue, etb = sys.exc_info()
-            funargs = ", ".join(
-                [repr(x) for x in req_args] +  
-                ["%s=%s" % (k, repr(x)) for k, x in req_kwargs.iteritems()]
-                )
-            if len(funargs) > 40: 
-                funargs = funargs[:37] + "..."
+            except ServerError, exc:
+                if req_id is not None: 
+                    return {'result': None, 'error': '%s' % (exc), 'id': req_id}
+            except Exception:
+                etype, evalue, etb = sys.exc_info()
+                funargs = ", ".join(
+                    [repr(x) for x in req_args] +  
+                    ["%s=%s" % (k, repr(x)) for k, x in req_kwargs.iteritems()]
+                    )
+                if len(funargs) > 40: 
+                    funargs = funargs[:37] + "..."
                 
-            print "(%s) In Handler method %s.%s(%s) " % (
-                req_object.__class__.__module__,
-                req_object.__class__.__name__,
-                req_function.__name__, 
-                funargs
-                )
-            print "\n".join([ "%s::%s:%d %s" % (
-                    filename, fnname, 
-                    lineno, srcline  ) 
-                for filename, lineno, fnname, srcline 
-                in traceback.extract_tb(etb)[1:] ])
-            print "Unhandled error: %s: %s" % (etype.__name__, evalue)
-                
-            del etb
-            if req_id is not None: 
-                return {
-                    'result': None, 
-                    'error': '%s: %s' % (etype.__name__, evalue), 
-                    'id': req_id
-                    }
+                print "(%s) In Handler method %s.%s(%s) " % (
+                    req_object.__class__.__module__,
+                    req_object.__class__.__name__,
+                    req_method, 
+                    funargs
+                    )
+                print "\n".join([ "%s::%s:%d %s" % (
+                        filename, fnname, 
+                        lineno, srcline  ) 
+                    for filename, lineno, fnname, srcline 
+                    in traceback.extract_tb(etb)[1:] ])
+                print "Unhandled error: %s: %s" % (etype.__name__, evalue)
+                    
+                del etb
+                if req_id is not None: 
+                    return {
+                        'result': None, 
+                        'error': '%s: %s' % (etype.__name__, evalue), 
+                        'id': req_id
+                        }
         
         if req_id is None: 
             return None

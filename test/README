@@ -1,0 +1,4 @@
+FOLDER ./test/
+-----------------
+
+This folder contains the unit-tests available for bjsonrpc package.

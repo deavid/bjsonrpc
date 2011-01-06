@@ -33,7 +33,8 @@
 """
 import re
 from types import MethodType
-    
+from bjsonrpc.exceptions import  ServerError
+
 class BaseHandler(object):
     """
         Base Class to publish remote methods. It is instantiated by *Connection*.
@@ -114,7 +115,7 @@ class BaseHandler(object):
             connections to get the apropiate method object.
         """
         if name not in self._methods:
-            raise ValueError("Unkown method %s" % repr(name))
+            raise ServerError("Unknown method %s" % repr(name))
             
         return self._methods[name]
         

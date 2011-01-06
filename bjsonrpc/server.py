@@ -61,6 +61,10 @@ class Server(object):
         self._handler = handler_factory
         self._debug_socket = False
         self._debug_dispatch = False
+        self._serve = True
+    
+    def stop(self):
+        self._serve = False
     
     def debug_socket(self, value = None):
         """
@@ -108,13 +112,16 @@ class Server(object):
             sockets = []
             connections = []
             connidx = {}
-            while True:
+            while self._serve:
                 ready_to_read = select.select( 
                     [self._lstsck]+sockets, # read
                     [], [], # write, errors
                     1 # timeout
                     )[0]
-            
+                    
+                if not ready_to_read: 
+                    continue
+                    
                 if self._lstsck in ready_to_read:
                     clientsck, clientaddr = self._lstsck.accept()
                     sockets.append(clientsck)
@@ -126,6 +133,7 @@ class Server(object):
                     connidx[clientsck.fileno()] = conn
                     conn._debug_socket = self._debug_socket
                     conn._debug_dispatch = self._debug_socket
+                    # conn.internal_error_callback = self.
                     
                     connections.append(conn)
                 
