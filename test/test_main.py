@@ -10,12 +10,14 @@ from types import ListType
 
 class TestJSONBasics(unittest.TestCase):
     def setUp(self):
-        #testserver1.start()
+        testserver1.start()
         self.conn = bjsonrpc.connect()
         
     def tearDown(self):
-        #testserver1.stop()
-        pass
+        testserver1.stop(self.conn)
+
+    #def test_zzz_stopserver(self): # workaround for teardownclass in python <2.7
+    #    testserver1.stop()
         
     def test_call(self):
         """ 
@@ -134,7 +136,5 @@ class TestJSONBasics(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    testserver1.start()
     unittest.main()
-    testserver1.stop()
 

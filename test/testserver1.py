@@ -23,19 +23,29 @@ class ServerHandler(BaseHandler):
         return (a, b, c)
         
 
-
+server = None
 def start():
     global server,  server_thread
+    if server: return
     server = createserver(handler_factory=ServerHandler)
     server_thread = threading.Thread(target=server.serve)
+    server_thread.daemon = True
     server_thread.start()
 
-def stop():
+def stop(c):
     global server,  server_thread
+    if server is None: return
     server.stop()
+    try:
+        c.notify.ping()
+    except Exception:
+        pass
+    
     server_thread.join(timeout=5)
     if server_thread.is_alive():
         raise IOError("Server Still Alive!!!")
     
-    del server_thread
-    del server
+    server = None
+    server_thread = None
+    
+    
