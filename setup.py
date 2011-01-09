@@ -36,10 +36,30 @@ setup(
     name = 'bjsonrpc',
     version = '0.1.1',
     description = 'Asynchronous Bidirectional JSON-RPC protocol implementation over TCP/IP',
+    long_description = """
+        *bjsonrpc* is a implementation of the well-known JSON-RPC protocol
+        over TCP-IP with lots of features. It is aimed at speed and simplicity and
+        it adds some other extensions to JSON-RPC that makes *bjsonrpc* a very
+        powerful tool as a IPC mechanism over low bandwith.
+    """,
     author = 'David Martinez Marti',
     author_email = 'deavidsedice@gmail.com',
-    url = 'http://www.github.com/deavid',
-    license = 'BSD',
+    url = 'http://deavid.github.com/bjsonrpc',
+    download_url = 'http://github.com/deavid/bjsonrpc/tarball/master',
+    classifiers = [
+        "Development Status :: 4 - Beta",
+        "Intended Audience :: Developers",
+        "License :: DFSG approved",
+        "License :: OSI Approved :: BSD License",
+        "Natural Language :: English",
+        "Operating System :: OS Independent",
+        "Programming Language :: Python :: 2",
+        "Programming Language :: Python :: 2.5",
+        "Programming Language :: Python :: 2.6",
+        "Topic :: Communications",
+        "Topic :: Software Development :: Libraries :: Python Modules",
+        "Topic :: Software Development :: Object Brokering",
+    ],
     packages = ['bjsonrpc']
 )
 
