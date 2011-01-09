@@ -8,7 +8,7 @@
 """
 
 __version__ = '0.1'
-__release__ = '0.1.x-dev'
+__release__ = '0.1.1'
 
 
 __all__ = [
