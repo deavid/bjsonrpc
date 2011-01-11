@@ -368,6 +368,12 @@ class Connection(object): # TODO: Split this class in simple ones
                 
             if req_method == '__delete__': 
                 req_object = None
+                try:
+                    self._objects[objectname]._shutdown()
+                except Exception:
+                    print "Error when shutting down the object", type(self._objects[objectname]),":"
+                    print traceback.format_exc()
+                    
                 del self._objects[objectname]
                 result = None
             else:
@@ -551,6 +557,11 @@ class Connection(object): # TODO: Split this class in simple ones
         """
             Close the connection and the socket. 
         """
+        try:
+            self.handler._shutdown()
+        except Exception:
+            print "Error when shutting down the handler:"
+            print traceback.format_exc()
         try:
             self._sck.shutdown(socket.SHUT_RDWR)
         except socket.error:

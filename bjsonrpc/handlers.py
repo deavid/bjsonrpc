@@ -85,6 +85,14 @@ class BaseHandler(object):
         """
         pass 
         
+    def _shutdown(self):
+        """
+            Internal method called when the handler is going to be destroyed.
+            You should add cleanup code here. Remember to call the parent
+            function.
+        """
+        pass # In the future, here we could have some internal clean-up code.
+        
     def close(self):
         """
             Cleans some variables before the object is freed. _close is called
