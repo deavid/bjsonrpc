@@ -139,8 +139,8 @@ class Connection(object): # TODO: Split this class in simple ones
         
     """
     _maxtimeout = {
-        'read' : 5,    # default maximum read timeout.
-        'write' : 5,   # default maximum write timeout.
+        'read' : 60,    # default maximum read timeout.
+        'write' : 60,   # default maximum write timeout.
     }
     
     @classmethod
