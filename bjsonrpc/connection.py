@@ -40,6 +40,7 @@ from bjsonrpc.request import Request
 from bjsonrpc.exceptions import EofError, ServerError
 
 import bjsonrpc.jsonlib as json
+import select
 
 class RemoteObject(object):
     """
@@ -432,6 +433,14 @@ class Connection(object): # TODO: Split this class in simple ones
             This method will never block waiting. If there aren't 
             any more messages that can be processed, it returns.
         """
+        ready_to_read = select.select( 
+                    [self._sck], # read
+                    [], [], # write, errors
+                    0 # timeout
+                    )[0]
+                    
+        if not ready_to_read: return 0
+            
         newline_idx = 0
         count = 0
         while newline_idx != -1:
