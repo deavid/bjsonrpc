@@ -64,10 +64,12 @@ class BaseHandler(object):
     # List of method names that never should be published    
         
     def __init__(self, connection):
-        if hasattr(connection,"connection"): 
-            self._conn = connection.connection
-        else:
-            self._conn = connection
+        self._conn = connection
+        
+        if hasattr(self._conn,"connection"): 
+            self._conn = self._conn.connection
+        if hasattr(self._conn,"_conn"): 
+            self._conn = self._conn._conn
             
         self._methods = {}
         for mname in dir(self):
