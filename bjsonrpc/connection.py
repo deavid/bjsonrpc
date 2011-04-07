@@ -592,7 +592,7 @@ class Connection(object): # TODO: Split this class in simple ones
         """
         assert('\n' not in data)
         if self._debug_socket: 
-            print "<:%d:" % len(data), data
+            print "<:%d:" % len(data), data[:80]
             
         self._wbuffer += list(str(data + '\n'))
         sbytes = 0
@@ -632,7 +632,7 @@ class Connection(object): # TODO: Split this class in simple ones
         """
         data = self._readn()
         if len(data) and self._debug_socket: 
-            print ">:%d:" % len(data), data
+            print ">:%d:" % len(data), data[:80]
         return data
     
     def settimeout(self, operation, timeout):
