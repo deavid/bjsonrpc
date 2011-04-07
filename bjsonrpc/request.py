@@ -96,8 +96,11 @@ class Request(object):
             Block until there is a response. Will manage the socket and dispatch
             messages until the response is found.
         """
+        #if self.response is None:
+        #    self.conn.read_ensure_thread()
+            
         while self.response is None:
-            self.conn.read_and_dispatch()
+            self.conn.read_and_dispatch(condition=lambda: self.response is None)
         
     @property
     def value(self):

@@ -23,6 +23,10 @@ __all__ = [
     "exceptions"
 ]
 
+bjsonrpc_options = {
+    'threaded' : False
+}
+
 from bjsonrpc.main import createserver, connect
 
 import bjsonrpc.server
