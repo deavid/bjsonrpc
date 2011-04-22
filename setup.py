@@ -34,7 +34,7 @@ from distutils.core import setup
 
 setup(
     name = 'bjsonrpc',
-    version = '0.1.1',
+    version = '0.2.0',
     description = 'Asynchronous Bidirectional JSON-RPC protocol implementation over TCP/IP',
     long_description = """
         *bjsonrpc* is a implementation of the well-known JSON-RPC protocol
