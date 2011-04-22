@@ -110,13 +110,20 @@ class BaseHandler(object):
         for method in args:
             if method.__name__ in self.nonpublic_methods: 
                 continue
-            assert(method.__name__ not in self._methods)
+            try:
+                assert(method.__name__ not in self._methods)
+            except AssertionError:
+                raise NameError, "Method with name %s already in the class methods!" % (method.__name__)
             self._methods[method.__name__] = method
             
         for name, method in kwargs.iteritems():
             if method.__name__ in self.nonpublic_methods: 
                 continue
-            assert(name not in self._methods)
+            try:
+                assert(name not in self._methods)
+            except AssertionError:
+                raise NameError, "Method with name %s already in the class methods!" % (method.__name__)
+                
             self._methods[name] = method
 
     def get_method(self, name):
