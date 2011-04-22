@@ -312,6 +312,9 @@ class Connection(object): # TODO: Split this class in simple ones
         if not hasattr(obj, '__class__'): 
             raise TypeError("JSON objects must be instances, not types")
             
+        if obj.__class__.__name__ == 'Decimal': # Probably is just a float.
+            return float(obj)
+            
         if isinstance(obj, RemoteObject): 
             return self._dump_objectreference(obj)
             
@@ -548,8 +551,20 @@ class Connection(object): # TODO: Split this class in simple ones
                 }
             
         if response is not None:
+            txtResponse = None
             try:
-                self.write(json.dumps(response, self))
+                txtResponse = json.dumps(response, self)
+            except Exception, e:
+                print "An unexpected error ocurred when trying to create the message:", repr(e)
+                response = {
+                    'result': None, 
+                    'error': "InternalServerError: " + repr(e), 
+                    'id': item['id']
+                    }
+                txtResponse = json.dumps(response, self)
+                
+            try:
+                self.write(txtResponse)
             except TypeError:
                 print "response was:", repr(response)
                 raise
