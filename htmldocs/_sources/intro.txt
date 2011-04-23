@@ -58,13 +58,11 @@ JSON protocol specification:
   require several commands to complete one operation.
   
 
-The messages sent are simple JSON objects followed by a newline *'\n'* separator.
+The messages sent are simple JSON objects followed by a newline *'\\n'* separator.
 You should keep messages as short as you can. That will give you better response
 speed with slow connections. If you plan to send lots of data through a message
 consider dividing them in small parts (about 4K of data per message). Peers could
-have in the future a configurable hard-limit on the message size and could 
-either disconnect the socket or discard the message when a message exceeds the
-limit configured.
+hangup waiting for receiving one big-packet and leaving the rest for later.
 
 *bjsonrpc* implementation aims to:
 

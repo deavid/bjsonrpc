@@ -79,10 +79,15 @@ avaliable to the other end.</dd>
 <dd>Close the connection and the socket.</dd></dl>
 
 <dl class="method">
-<dt id="bjsonrpc.connection.Connection.dispatch_item">
-<tt class="descname">dispatch_item</tt><big>(</big><em>item</em><big>)</big><a class="headerlink" href="#bjsonrpc.connection.Connection.dispatch_item" title="Permalink to this definition">¶</a></dt>
+<dt id="bjsonrpc.connection.Connection.dispatch_item_single">
+<tt class="descname">dispatch_item_single</tt><big>(</big><em>item</em><big>)</big><a class="headerlink" href="#bjsonrpc.connection.Connection.dispatch_item_single" title="Permalink to this definition">¶</a></dt>
 <dd>Given a JSON item received from socket, determine its type and 
 process the message.</dd></dl>
+
+<dl class="method">
+<dt id="bjsonrpc.connection.Connection.dispatch_item_threaded">
+<tt class="descname">dispatch_item_threaded</tt><big>(</big><em>item</em><big>)</big><a class="headerlink" href="#bjsonrpc.connection.Connection.dispatch_item_threaded" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="method">
 <dt id="bjsonrpc.connection.Connection.dispatch_until_empty">
@@ -166,7 +171,7 @@ which by default points to read_line</dd></dl>
 
 <dl class="method">
 <dt id="bjsonrpc.connection.Connection.read_and_dispatch">
-<tt class="descname">read_and_dispatch</tt><big>(</big><em>timeout=None</em><big>)</big><a class="headerlink" href="#bjsonrpc.connection.Connection.read_and_dispatch" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">read_and_dispatch</tt><big>(</big><em>timeout=None</em>, <em>thread=True</em>, <em>condition=None</em><big>)</big><a class="headerlink" href="#bjsonrpc.connection.Connection.read_and_dispatch" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read one message from socket (with timeout specified by the optional 
 argument <em>timeout</em>) and dispatches that message.</p>
 <p>Parameters:</p>

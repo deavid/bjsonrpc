@@ -98,13 +98,11 @@ to A request to complete before proceding)</li>
 to create stateful peers, which will be configurable per connection, or will
 require several commands to complete one operation.</li>
 </ul>
-<p>The messages sent are simple JSON objects followed by a newline <em>&#8216;n&#8217;</em> separator.
+<p>The messages sent are simple JSON objects followed by a newline <em>&#8216;\n&#8217;</em> separator.
 You should keep messages as short as you can. That will give you better response
 speed with slow connections. If you plan to send lots of data through a message
 consider dividing them in small parts (about 4K of data per message). Peers could
-have in the future a configurable hard-limit on the message size and could
-either disconnect the socket or discard the message when a message exceeds the
-limit configured.</p>
+hangup waiting for receiving one big-packet and leaving the rest for later.</p>
 <p><em>bjsonrpc</em> implementation aims to:</p>
 <ul class="simple">
 <li>Have a complete bidirectional protocol.</li>

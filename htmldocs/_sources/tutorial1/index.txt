@@ -41,7 +41,7 @@ server code::
         def delta(self,start):
             return time.time() - start
     
-    s = createserver( host="0.0.0.0" )
+    s = createserver(host="0.0.0.0", handler_factory=ServerHandler)
     s.serve()
 
 Here we have created a Handler for server methods, and we ve declared a method
@@ -74,25 +74,25 @@ Connection Proxies
 ----------------------
 
 A connection proxy is a class that makes it easier to call a remote function.
-By default a connection comes with three connection proxies: call, method and
-notice.
+By default a connection comes with three connection proxies: *call*, *method* and
+*notice*.
 
 Here's a short description for each one:
 
 *connection* . **call** . methodname(...)
-    Calls a remote method named *methodname* with the args given. It will wait
-    and block until a response for this method is received. The result is 
+    Calls a remote method named *methodname* with the args given. It **will wait
+    and block** until a response for this method is received. The result is 
     returned as a value or a ServerError is raised if there were errors.
     
 *connection* . **method** . methodname(...)
     Calls a remote method named *methodname* with the args given. Writes to the
-    socket and returns without waiting. It returns a Request object which is 
+    socket and **returns without waiting**. It returns a Request object which is 
     useful to retrieve the return value later.
     
 *connection* . **notify** . methodname(...)
     Calls a remote method named *methodname* with the args given. Writes to the
-    socket and returns without waiting. It tells to the server to discard the
-    returning value or errors produced by the call.
+    socket and returns without waiting. It tells to the server to **discard the
+    returning value** or errors produced by the call.
     
 Any server method can be called with any of these 3 proxies. If you don't know
 what you should use, start using the *call* proxy because is the simpler. When 
@@ -100,6 +100,10 @@ you need more performance you'll should take a look to the other two. *Method*
 proxy virtually removes the network lag on multiple calls that aren't required 
 to be executed in serial order. *Notify* proxy doubles bandwidth the eficiency 
 of *method* removing the return value.
+
+You can also make *call* proxy to go as fast as *method* proxy using python 
+threads. This will create concurrent calls and avoids using complex methods.
+But sometimes threads are complex than the *method* proxy, so is your choice.
 
     
 
@@ -130,7 +134,7 @@ Here is another server example with states::
         
         def read(self): return self.fifo.pop(0)
         
-    s = createserver( host="0.0.0.0" ).serve()
+    s = createserver(host="0.0.0.0", handler_factory=ServerHandler).serve()
 
 There is a special *_setup()* method to make easier the inheritance. This function
 is called just after *__init__()* and you don't have to call the super function.

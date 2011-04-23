@@ -50,6 +50,62 @@
             
   <div class="section" id="quickstart">
 <h1>Quickstart<a class="headerlink" href="#quickstart" title="Permalink to this headline">¶</a></h1>
+<p>To create a program pair that communicates through jsonrpc protocol, this is the
+straightforward way:</p>
+<div class="section" id="download-and-install">
+<h2>Download and Install<a class="headerlink" href="#download-and-install" title="Permalink to this headline">¶</a></h2>
+<p>Download the latest package (if you haven&#8217;t downloaded it yet), from the project
+website [1] or from github repository [2].</p>
+<p>You will need Python 2.5 (2.6 or later recommended) and a JSON library for python.
+Python 2.6 and later bundles a json library. earlier versions should download
+and install python-simplejson.</p>
+<p>Install the package with the standard distutils:</p>
+<div class="highlight-python"><pre>$ sudo python setup.py install</pre>
+</div>
+<p>You&#8217;re done. Try to create a new server and client and see how easy it is.</p>
+</div>
+<div class="section" id="creating-a-test-server">
+<h2>Creating a test server<a class="headerlink" href="#creating-a-test-server" title="Permalink to this headline">¶</a></h2>
+<p>Write the following code and save it as rpcserver.py:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">bjsonrpc</span>
+<span class="kn">from</span> <span class="nn">bjsonrpc.handlers</span> <span class="kn">import</span> <span class="n">BaseHandler</span>
+
+<span class="k">class</span> <span class="nc">MyServerHandler</span><span class="p">(</span><span class="n">BaseHandler</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">hello</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">txt</span><span class="p">):</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="s">&quot;hello, </span><span class="si">%s</span><span class="s">!.&quot;</span> <span class="o">%</span> <span class="n">txt</span>
+        <span class="k">print</span> <span class="s">&quot;*&quot;</span><span class="p">,</span> <span class="n">response</span>
+        <span class="k">return</span> <span class="n">response</span>
+
+<span class="n">s</span> <span class="o">=</span> <span class="n">bjsonrpc</span><span class="o">.</span><span class="n">createserver</span><span class="p">(</span> <span class="n">handler_factory</span> <span class="o">=</span> <span class="n">MyServerHandler</span> <span class="p">)</span>
+<span class="n">s</span><span class="o">.</span><span class="n">debug_socket</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">s</span><span class="o">.</span><span class="n">serve</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Execute it and leave it running on other window.</p>
+</div>
+<div class="section" id="creating-a-test-client">
+<h2>Creating a test client<a class="headerlink" href="#creating-a-test-client" title="Permalink to this headline">¶</a></h2>
+<p>Write the following code and save it as rpcclient.py:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">bjsonrpc</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">bjsonrpc</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
+<span class="k">print</span> <span class="s">&quot;::&gt;&quot;</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">call</span><span class="o">.</span><span class="n">hello</span><span class="p">(</span><span class="s">&quot;john&quot;</span><span class="p">)</span>
+<span class="k">print</span> <span class="s">&quot;::&gt;&quot;</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">call</span><span class="o">.</span><span class="n">hello</span><span class="p">(</span><span class="s">&quot;arnold&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Execute it and you should see the following output in the server part:</p>
+<div class="highlight-python"><pre>&gt;:43: {"params":["john"],"method":"hello","id":1}
+* hello, john!.
+&lt;:46: {"id":1,"result":"hello, john!.","error":null}
+&gt;:45: {"params":["arnold"],"method":"hello","id":2}
+* hello, arnold!.
+&lt;:48: {"id":2,"result":"hello, arnold!.","error":null}</pre>
+</div>
+<p>And this output on the client part:</p>
+<div class="highlight-python"><pre>::&gt; hello, john!.
+::&gt; hello, arnold!.</pre>
+</div>
+<p>Refer to the tutorial for more information.</p>
+</div>
 </div>
 
 
@@ -58,6 +114,16 @@
       </div>
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
+            <h3><a href="index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="#">Quickstart</a><ul>
+<li><a class="reference external" href="#download-and-install">Download and Install</a></li>
+<li><a class="reference external" href="#creating-a-test-server">Creating a test server</a></li>
+<li><a class="reference external" href="#creating-a-test-client">Creating a test client</a></li>
+</ul>
+</li>
+</ul>
+
             <h4>Previous topic</h4>
             <p class="topless"><a href="intro.html"
                                   title="previous chapter">Introduction to bjsonrpc</a></p>

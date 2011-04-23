@@ -84,7 +84,7 @@ server code:</p>
     <span class="k">def</span> <span class="nf">delta</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">start</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span>
 
-<span class="n">s</span> <span class="o">=</span> <span class="n">createserver</span><span class="p">(</span> <span class="n">host</span><span class="o">=</span><span class="s">&quot;0.0.0.0&quot;</span> <span class="p">)</span>
+<span class="n">s</span> <span class="o">=</span> <span class="n">createserver</span><span class="p">(</span><span class="n">host</span><span class="o">=</span><span class="s">&quot;0.0.0.0&quot;</span><span class="p">,</span> <span class="n">handler_factory</span><span class="o">=</span><span class="n">ServerHandler</span><span class="p">)</span>
 <span class="n">s</span><span class="o">.</span><span class="n">serve</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -114,22 +114,22 @@ ServerException.</p>
 <div class="section" id="connection-proxies">
 <h2>Connection Proxies<a class="headerlink" href="#connection-proxies" title="Permalink to this headline">¶</a></h2>
 <p>A connection proxy is a class that makes it easier to call a remote function.
-By default a connection comes with three connection proxies: call, method and
-notice.</p>
+By default a connection comes with three connection proxies: <em>call</em>, <em>method</em> and
+<em>notice</em>.</p>
 <p>Here&#8217;s a short description for each one:</p>
 <dl class="docutils">
 <dt><em>connection</em> . <strong>call</strong> . methodname(...)</dt>
-<dd>Calls a remote method named <em>methodname</em> with the args given. It will wait
-and block until a response for this method is received. The result is
+<dd>Calls a remote method named <em>methodname</em> with the args given. It <strong>will wait
+and block</strong> until a response for this method is received. The result is
 returned as a value or a ServerError is raised if there were errors.</dd>
 <dt><em>connection</em> . <strong>method</strong> . methodname(...)</dt>
 <dd>Calls a remote method named <em>methodname</em> with the args given. Writes to the
-socket and returns without waiting. It returns a Request object which is
+socket and <strong>returns without waiting</strong>. It returns a Request object which is
 useful to retrieve the return value later.</dd>
 <dt><em>connection</em> . <strong>notify</strong> . methodname(...)</dt>
 <dd>Calls a remote method named <em>methodname</em> with the args given. Writes to the
-socket and returns without waiting. It tells to the server to discard the
-returning value or errors produced by the call.</dd>
+socket and returns without waiting. It tells to the server to <strong>discard the
+returning value</strong> or errors produced by the call.</dd>
 </dl>
 <p>Any server method can be called with any of these 3 proxies. If you don&#8217;t know
 what you should use, start using the <em>call</em> proxy because is the simpler. When
@@ -137,6 +137,9 @@ you need more performance you&#8217;ll should take a look to the other two. <em>
 proxy virtually removes the network lag on multiple calls that aren&#8217;t required
 to be executed in serial order. <em>Notify</em> proxy doubles bandwidth the eficiency
 of <em>method</em> removing the return value.</p>
+<p>You can also make <em>call</em> proxy to go as fast as <em>method</em> proxy using python
+threads. This will create concurrent calls and avoids using complex methods.
+But sometimes threads are complex than the <em>method</em> proxy, so is your choice.</p>
 </div>
 <div class="section" id="stateful-server">
 <h2>Stateful server<a class="headerlink" href="#stateful-server" title="Permalink to this headline">¶</a></h2>
@@ -162,7 +165,7 @@ to the developer.</p>
 
     <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fifo</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 
-<span class="n">s</span> <span class="o">=</span> <span class="n">createserver</span><span class="p">(</span> <span class="n">host</span><span class="o">=</span><span class="s">&quot;0.0.0.0&quot;</span> <span class="p">)</span><span class="o">.</span><span class="n">serve</span><span class="p">()</span>
+<span class="n">s</span> <span class="o">=</span> <span class="n">createserver</span><span class="p">(</span><span class="n">host</span><span class="o">=</span><span class="s">&quot;0.0.0.0&quot;</span><span class="p">,</span> <span class="n">handler_factory</span><span class="o">=</span><span class="n">ServerHandler</span><span class="p">)</span><span class="o">.</span><span class="n">serve</span><span class="p">()</span>
 </pre></div>
 </div>
 <p>There is a special <em>_setup()</em> method to make easier the inheritance. This function
