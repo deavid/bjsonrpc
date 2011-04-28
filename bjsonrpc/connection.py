@@ -708,20 +708,23 @@ class Connection(object): # TODO: Split this class in simple ones
             
         self._sck.settimeout(timeout)
             
-
+    
     def write(self, data, timeout = None):
+        th1 = threading.Thread(target=self.write_now, kwargs={"data":data,"timeout":timeout})
+        th1.start()
+
+    def write_now(self, data, timeout = None):
         """ 
             Standard function to write to the socket 
             which by default points to write_line
         """
+        #self.scklock.acquire()
         self.settimeout("write", timeout)
-        self.scklock.acquire()
         ret = None
-        try:
-            ret = self.write_line(data)
-        finally:
-            self.scklock.release()
-        
+        #try:
+        ret = self.write_line(data)
+        #finally:
+        #    self.scklock.release()
         return ret
     
     def read(self, timeout = None):
