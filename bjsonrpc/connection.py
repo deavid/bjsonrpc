@@ -220,7 +220,11 @@ class Connection(object): # TODO: Split this class in simple ones
         self.read_lock = threading.RLock()
         self.reading_event = threading.Event()
         self.threaded = bjsonrpc_options['threaded']
-        
+        self.write_thread_queue = []
+        self.write_thread_semaphore = threading.Semaphore(0)
+        self.write_thread = threading.Thread(target=self.write_thread)
+        self.write_thread.daemon = True
+        self.write_thread.start()
 
     @property
     def socket(self): 
@@ -614,6 +618,16 @@ class Connection(object): # TODO: Split this class in simple ones
         """
             Close the connection and the socket. 
         """
+        
+        item = {
+            'abort' : True,
+            'event' : threading.Event()
+        }
+        self.write_thread_queue.append(item)
+        self.write_thread_semaphore.release() # notify new item.
+        item['event'].wait(1)
+        if not item['event'].isSet():
+            print "WARN: write thread doesn't process our abort command" 
         try:
             self.handler._shutdown()
         except Exception:
@@ -709,9 +723,29 @@ class Connection(object): # TODO: Split this class in simple ones
         self._sck.settimeout(timeout)
             
     
+    def write_thread(self):
+        abort = False
+        while not abort:
+            self.write_thread_semaphore.acquire() 
+            try:
+                item = self.write_thread_queue.pop(0)
+            except IndexError: # pop from empty list?
+                print "WARN: write queue was empty??"
+                continue
+            abort = item.get("abort", False)
+            event = item.get("event")
+            write_data  = item.get("write_data")
+            if write_data: item["result"] = self.write_now(write_data)
+            if event: event.set()
+        print "Exited writing thread."
+            
+            
     def write(self, data, timeout = None):
-        th1 = threading.Thread(target=self.write_now, kwargs={"data":data,"timeout":timeout})
-        th1.start()
+        item = {
+            'write_data' : data
+        }
+        self.write_thread_queue.append(item)
+        self.write_thread_semaphore.release() # notify new item.
 
     def write_now(self, data, timeout = None):
         """ 
