@@ -766,9 +766,9 @@ class Connection(object): # TODO: Split this class in simple ones
             Standard function to read from the socket 
             which by default points to read_line
         """
-        self.settimeout("read", timeout)
         ret = None
         self.scklock.acquire()
+        self.settimeout("read", timeout)
         try:
             ret = self.read_line()
         finally:
