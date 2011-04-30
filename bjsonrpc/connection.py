@@ -218,6 +218,7 @@ class Connection(object): # TODO: Split this class in simple ones
         self._wbuffer = []
         self.write_lock = threading.RLock()
         self.read_lock = threading.RLock()
+        self.getid_lock = threading.Lock()
         self.reading_event = threading.Event()
         self.threaded = bjsonrpc_options['threaded']
         self.write_thread_queue = []
@@ -239,8 +240,13 @@ class Connection(object): # TODO: Split this class in simple ones
             
             It is mainly used to create internal id's for calls.
         """
+        self.getid_lock.acquire() 
+        # Prevent two threads to execute this code simultaneously
         self._id += 1
-        return self._id 
+        ret = self._id 
+        self.getid_lock.release()
+        
+        return ret
         
     def load_object(self, obj):
         """
