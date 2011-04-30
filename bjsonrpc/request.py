@@ -70,6 +70,15 @@ class Request(object):
         data = json.dumps(self.data, self.conn)
 
         self.conn.write(data)
+    
+    def hasresponse(self):
+        """
+            Method thet checks if there's a response or not.
+            Returns True if there it is or False if it haven't arrived yet.
+        """
+        if self.response is not None: return True
+        self.conn.dispatch_until_empty()
+        return self.response is not None
         
     def setresponse(self, value):
         """
@@ -101,6 +110,9 @@ class Request(object):
             
         while self.response is None:
             self.conn.read_and_dispatch(condition=lambda: self.response is None)
+    
+    def __call__(self):
+        return self.value
         
     @property
     def value(self):
