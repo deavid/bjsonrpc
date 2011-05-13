@@ -113,12 +113,25 @@ class Server(object):
             connections = []
             connidx = {}
             while self._serve:
-                ready_to_read = select.select( 
-                    [self._lstsck]+sockets, # read
-                    [], [], # write, errors
-                    1 # timeout
-                    )[0]
-                    
+                try:
+                    ready_to_read = select.select( 
+                        [self._lstsck]+sockets, # read
+                        [], [], # write, errors
+                        1 # timeout
+                        )[0]
+                except Exception:
+                    # Probably a socket is no longer valid.
+                    a = self._lstsck.fileno() # if this is not valid, raise Exception, exit.
+                    newsockets = []
+                    for sck in sockets:
+                        try:
+                            a = sck.fileno()
+                            h = sck.getpeername()
+                        except Exception:
+                            continue
+                        newsockets.append(sck)
+                    sockets[:] = newsockets
+                    continue
                 if not ready_to_read: 
                     continue
                     
@@ -155,7 +168,12 @@ class Server(object):
         finally:
             for conn in connections: 
                 conn.close()
-                
-            self._lstsck.shutdown(socket.SHUT_RDWR)
-            self._lstsck.close()
+            try:
+                self._lstsck.shutdown(socket.SHUT_RDWR)
+            except Exception:
+                pass
+            try:
+                self._lstsck.close()
+            except Exception:
+                pass
 
