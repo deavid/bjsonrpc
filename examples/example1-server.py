@@ -92,6 +92,18 @@ class MyList(BaseHandler):
 
 
 class MyHandler(BaseHandler):
+    @classmethod
+    def _factory(cls, *args, **kwargs):
+        def handler_factory(connection):
+            handler = cls(connection, *args, **kwargs)
+            return handler
+        return handler_factory
+    
+    def __init__(self, connection, *args, **kwargs):
+        BaseHandler.__init__(self,connection)
+        print args
+        print kwargs
+        
     def _setup(self):
         self.value_count = 0
         self.value_total = 0
@@ -124,8 +136,17 @@ class MyHandler(BaseHandler):
         #print self._methods 
         print string
         return string
+
+import threading
+def thread1():  
+    time.sleep(0.2)  
+    conn = bjsonrpc.connect(host="127.0.0.1",port=10123)
+    conn.call.echo("Hello world")
+    conn.close()
     
 
-s = bjsonrpc.createserver(handler_factory=MyHandler, port = 10123, host = "0.0.0.0")
+s = bjsonrpc.createserver(handler_factory=MyHandler._factory(domain="yourdomain-dot-com"), port = 10123, host = "0.0.0.0")
 s.debug_socket(True)
+threading.Thread(target=thread1).start()
+
 s.serve()
