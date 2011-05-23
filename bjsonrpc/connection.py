@@ -204,6 +204,7 @@ class Connection(object): # TODO: Split this class in simple ones
         self._sck = sck
         self._address = address
         self._handler = handler_factory 
+        self.connection_status = "open"
         if self._handler: 
             self.handler = self._handler(self)
             
@@ -624,7 +625,7 @@ class Connection(object): # TODO: Split this class in simple ones
         """
             Close the connection and the socket. 
         """
-        
+        if self.connection_status == "closed": return
         item = {
             'abort' : True,
             'event' : threading.Event()
@@ -644,6 +645,7 @@ class Connection(object): # TODO: Split this class in simple ones
         except socket.error:
             pass
         self._sck.close()
+        self.connection_status = "closed"
     
     def write_line(self, data):
         """
