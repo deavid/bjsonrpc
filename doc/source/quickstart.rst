@@ -7,18 +7,20 @@ straightforward way:
 Download and Install
 ----------------------------------
 
-Download the latest package (if you haven't downloaded it yet), from the project
-website [1] or from github repository [2].
+Download the latest package (if you haven't downloaded it yet), from 
+the `PyPI page for bjsonrpc`_.
 
 You will need Python 2.5 (2.6 or later recommended) and a JSON library for python.
-Python 2.6 and later bundles a json library. earlier versions should download 
-and install python-simplejson.
+Python 2.6 and later bundles a json library. With earlier versions you will have
+to download and install python-simplejson.
 
 Install the package with the standard distutils::
 
     $ sudo python setup.py install
     
-You're done. Try to create a new server and client and see how easy it is.
+And the installation is done. 
+
+.. _`PyPI page for bjsonrpc`: http://pypi.python.org/pypi/bjsonrpc/0.2.0
 
 Creating a test server
 --------------------------------
@@ -64,4 +66,6 @@ And this output on the client part::
     ::> hello, john!.
     ::> hello, arnold!.
 
-Refer to the tutorial for more information.
+That is! you have a working server and client rpc. Refer to the tutorial for 
+more information.
+

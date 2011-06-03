@@ -95,7 +95,7 @@ Here's a short description for each one:
     returning value** or errors produced by the call.
     
 Any server method can be called with any of these 3 proxies. If you don't know
-what you should use, start using the *call* proxy because is the simpler. When 
+what you should use, start using the *call* proxy because is simpler. When 
 you need more performance you'll should take a look to the other two. *Method* 
 proxy virtually removes the network lag on multiple calls that aren't required 
 to be executed in serial order. *Notify* proxy doubles bandwidth the eficiency 
@@ -179,7 +179,26 @@ try/except clause::
             break
 
 
-    
+Exceptions
+----------------------------------------
+
+Exceptions on the server are propagated to the client. There are two kind of 
+exceptions: expected exceptions and unexpected ones. Expected exceptions are 
+those raised by the developer, meant to be catched at the client code. 
+Unexpected ones are those exceptions that should be catched by python code at
+the server but they weren't. The second ones may hide a bug on your code, so
+by default, bjsonrpc masks them as a ServerError. In some future could be a mode
+indicating wether the server should tell anything about the error to the client
+or not. By now, it's a text indicating the basics of the error.
+
+The library knows that the exception is expected by the programmer because it
+is a subclass of bjsonrpc.exceptions.ServerError. So, you can subclass this to
+create your own server exceptions. 
+
+Actually is impossible to tell the library that all exceptions are expected, or
+which ones (for example is impossible to send a TypeError to the client). This
+may be addressed in the future.
+
 
 
    

@@ -3,10 +3,11 @@ Introduction to bjsonrpc
 
 About
 ------
-*bjsonrpc* is a implementation of the well-known JSON-RPC protocol
-over TCP-IP with lots of features. It is aimed at speed and simplicity and
-it adds some other extensions to JSON-RPC that makes *bjsonrpc* a very
-powerful tool as a IPC mechanism over low bandwidth.
+*bjsonrpc* is a pure-python module that ships an implementation of the 
+well-known JSON-RPC protocol over raw TCP sockets with more features. It is 
+aimed at speed and simplicity and it adds some other extensions to JSON-RPC 
+that makes *bjsonrpc* a very powerful tool as a IPC mechanism over 
+low bandwidth.
 
 
 Basic design principles
@@ -61,8 +62,9 @@ JSON protocol specification:
 The messages sent are simple JSON objects followed by a newline *'\\n'* separator.
 You should keep messages as short as you can. That will give you better response
 speed with slow connections. If you plan to send lots of data through a message
-consider dividing them in small parts (about 4K of data per message). Peers could
-hangup waiting for receiving one big-packet and leaving the rest for later.
+consider dividing them in small parts (about 4K of data per message). With one 
+big packet, the entire stream will be blocked until it is sucessfully sent and
+no other queries can be sent while this is happening. 
 
 *bjsonrpc* implementation aims to:
 
@@ -88,8 +90,8 @@ Disavantages of bjsonrpc
 * At this moment there is only a Pure-python implementation (it would be good to 
   have Java, C# and Ruby ones)
 
-* Doesn't exist an HTTP implementation (but there are already lots of json-rpc 
-  libraries with HTTP)
+* Doesn't has any HTTP implementation (but there are already lots of json-rpc 
+  libraries with HTTP). Some features are clearly incompatible with HTTP.
   
 Examples of uses of bjsonrpc
 --------------------------------
