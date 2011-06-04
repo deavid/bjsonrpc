@@ -67,23 +67,31 @@ class RemoteObject(object):
             
             print list.call.getitems()
         
+        Attributes:
+        
+        **name**
+            name of the object in the server-side
+        
+        **call**
+            Synchronous Proxy. It forwards your calls to it to the other end, waits
+            the response and returns the value.
+
+        **method**
+            Asynchronous Proxy. It forwards your calls to it to the other end and
+            inmediatelly returns a *request.Request* instance.
+
+        **notify**
+            Notification Proxy. It forwards your calls to it to the other end and
+            tells the server to not response even if there's any error in the call.
+            Returns *None*.
+        
+        
     """
     
     name = None 
-    # Name of the object in the server-side. 
-    
     call = None 
-    # Synchronous Proxy. It forwards your calls to it to the other end, waits
-    # the response and returns the value.
-    
     method = None 
-    # Asynchronous Proxy. It forwards your calls to it to the other end and
-    # inmediatelly returns a *request.Request* instance.
-    
     notify = None 
-    # Notification Proxy. It forwards your calls to it to the other end and
-    # tells the server to not response even if there's any error in the call.
-    # Returns *None*.
     
     @property
     def connection(self): 
@@ -138,12 +146,30 @@ class Connection(object): # TODO: Split this class in simple ones
             Class type inherited from BaseHandler which holds the public methods.
             It defaults to *NullHandler* meaning no public methods will be 
             avaliable to the other end.
+
+        **Members:**
+
+        **call** 
+            Synchronous Proxy. It forwards your calls to it to the other end, waits
+            the response and returns the value
+        
+        **method**
+            Asynchronous Proxy. It forwards your calls to it to the other end and
+            inmediatelly returns a *request.Request* instance.
+    
+        **notify**
+            Notification Proxy. It forwards your calls to it to the other end and
+            tells the server to not response even if there's any error in the call.
+            Returns *None*.
         
     """
     _maxtimeout = {
         'read' : 60,    # default maximum read timeout.
         'write' : 60,   # default maximum write timeout.
     }
+    call = None 
+    method = None 
+    notify = None 
     
     @classmethod
     def setmaxtimeout(cls, operation, value):
@@ -184,18 +210,6 @@ class Connection(object): # TODO: Split this class in simple ones
             
         return cls._maxtimeout[operation]
     
-    call = None 
-    # Synchronous Proxy. It forwards your calls to it to the other end, waits
-    # the response and returns the value.
-    
-    method = None 
-    # Asynchronous Proxy. It forwards your calls to it to the other end and
-    # inmediatelly returns a *request.Request* instance.
-    
-    notify = None 
-    # Notification Proxy. It forwards your calls to it to the other end and
-    # tells the server to not response even if there's any error in the call.
-    # Returns *None*.
     
     def __init__(self, sck, address = None, handler_factory = None):
         self._debug_socket = False
@@ -523,9 +537,11 @@ class Connection(object): # TODO: Split this class in simple ones
             self.reading_event.clear()
             self.read_lock.release()
             
-        
-            
     def dispatch_item_threaded(self, item):
+        """
+            If threaded mode is activated, this function creates a new thread per
+            each item received and returns without blocking.
+        """
         if self.threaded:
             th1 = threading.Thread(target = self.dispatch_item_single, args = [ item ] )
             th1.start()
@@ -533,9 +549,6 @@ class Connection(object): # TODO: Split this class in simple ones
         else:
             return self.dispatch_item_single(item)
         
-        
-        
-    
     
     def dispatch_item_single(self, item):
         """

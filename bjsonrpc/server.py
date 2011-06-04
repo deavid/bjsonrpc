@@ -64,6 +64,10 @@ class Server(object):
         self._serve = True
     
     def stop(self):
+        """
+            Tells the server that it should stop. Useful in multithread apps.
+            Once stopped, call again to *serve()* to start the server loop again.
+        """
         self._serve = False
     
     def debug_socket(self, value = None):
@@ -108,6 +112,7 @@ class Server(object):
             serve to an unlimited amount of connections at same time 
             without using threading.
         """
+        self._serve = True
         try:
             sockets = []
             connections = []

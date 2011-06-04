@@ -46,11 +46,34 @@ class Request(object):
         Parameters:
         
         **conn**
-            Connection instance which this Request belongs to.
+            Connection instance which this Request belongs to. 
+            (internally stored as Request.conn)
             
         **request_data** 
             Dictionary object to serialize as JSON to send to the other end.
+            (internally stored as Request.data)
             
+            
+        Attributes:
+        
+        **response**
+            JSON Object of the response, as a dictionary. If no response has
+            been received, this is None. 
+            
+        **event_response**
+            A threading.Event object, which is set to true when a response has 
+            been received. Useful to wake up threads or to wait exactly until
+            the response is received.
+            
+        **callbacks**
+            List array where the developer can append functions to call when
+            the response is received. The function will get the Request object
+            as a first argument.
+
+        **request_id**
+            Number of ID that identifies the call. For notifications this is None.
+            Be careful because it may be not an integer. Strings and other objects
+            may be valid for other implementations.
             
     """
     def __init__(self, conn, request_data):
@@ -117,9 +140,16 @@ class Request(object):
     @property
     def value(self):
         """
-            Get request value response. If the response is not available, it waits
+            Property to get value response. If the response is not available, it waits
             to it (see *wait* method). If the response contains an Error, this
             method raises *exceptions.ServerError* with the error text inside.
+            
+            From version 0.2.0 you can also call the class itself to get the value::
+            
+                req_stime = rpcconn.method.getServerTime()
+                print req_stime.value  
+                print req_stime()     # equivalent to the prior line.
+                
         """
         self.wait()
         
