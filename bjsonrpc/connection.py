@@ -662,10 +662,10 @@ class Connection(object): # TODO: Split this class in simple ones
     
     def write_line(self, data):
         """
-            Write a line *data* to socket. It appends a `\\n` at
+            Write a line *data* to socket. It appends a **newline** at
             the end of the *data* before sending it.
             
-            The string MUST NOT contain `\\n` otherwise an AssertionError will
+            The string MUST NOT contain **newline** otherwise an AssertionError will
             raise.
             
             Parameters:

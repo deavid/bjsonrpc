@@ -34,6 +34,11 @@ for server requests.
 bjsonrpc provides two helper functions to easily create 
 a server or a connection, linked to a socket:
 
+.. autofunction:: bjsonrpc.createserver
+
+.. autofunction:: bjsonrpc.connect
+
+Other module attributes:
     
 .. attribute:: bjsonrpc.__version__
 
@@ -51,6 +56,4 @@ a server or a connection, linked to a socket:
     **threaded**
         (Default: False) When is set to True, threads will be created for handling 
         each incoming item.
-.. autofunction:: bjsonrpc.createserver
 
-.. autofunction:: bjsonrpc.connect

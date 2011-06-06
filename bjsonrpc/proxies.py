@@ -13,6 +13,7 @@
 class Proxy(object):
     """
     Object that forwards calls to the remote.
+    This class is intended to be instantiated from Connection class.
     
     Parameters:
     
@@ -23,7 +24,8 @@ class Proxy(object):
         synchronization type. 0-synchronous. 1-asynchronous. 2-notification.
         
     **obj** = None
-        optional. Object name to call their functions, (used to proxy functions of *RemoteObject*
+        optional. Object name to call their functions, (used to proxy 
+        functions of *RemoteObject*)
         
     """
     def __init__(self, conn, sync_type, obj = None):

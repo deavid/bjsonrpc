@@ -51,6 +51,18 @@ class BaseHandler(object):
                     self.c += 1
                     
                 def getcount(self): return c
+        
+        Other members:
+        
+        **public_methods_pattern**
+            RegEx string that returns True if the method name is suitable for
+            publishing. Defaults to r'^[a-z]\w+$'
+        
+        **nonpublic_methods**
+            List of string containing names that shouldn't be published (even 
+            if they are in the format required by the RegEx). Defaults to
+            ["close","_factory","add_method","get_method"]
+            
     """
     
     public_methods_pattern = r'^[a-z]\w+$'
@@ -58,12 +70,34 @@ class BaseHandler(object):
     
     nonpublic_methods = [
         "close",
+        "_factory",
         "add_method",
         "get_method",
         ] 
     # List of method names that never should be published    
-        
-    def __init__(self, connection):
+    
+    @classmethod
+    def _factory(cls, *args, **kwargs):
+        """
+            *New in bjsonrpc v0.2.1*
+            
+            Classmethod aimed to create flavoured instances of BaseHandler.
+            When you create a new connection you may want to give the constructor
+            a set of specific arguments. Use this classmethod to do that:
+            
+                conn = bjsonrpc.connect(handler_factory=MyHandler._factory("my flavoured one"))
+                
+            Later, whenever the class is instantiated, the BaseHandler.setup 
+            method will receive the arguments passed to factory.
+            
+            The original idea for this feature is from Paul Pietkiewicz *(pawel.pietkiewicz (at) gmail.com)*
+        """
+        def handler_factory(connection):
+            handler = cls(connection, *args, **kwargs)
+            return handler
+        return handler_factory
+    
+    def __init__(self, connection, *args, **kwargs):
         self._conn = connection
         
         if hasattr(self._conn,"connection"): 
@@ -78,9 +112,9 @@ class BaseHandler(object):
                 if isinstance(function, MethodType):
                     self.add_method(function)
             
-        self._setup()
+        self._setup(*args,**kwargs)
         
-    def _setup(self):
+    def _setup(self,*args,**kwargs):
         """
             Empty method to ease inheritance. Overload it with your needs, it
             will be called after __init__.
@@ -97,7 +131,7 @@ class BaseHandler(object):
         
     def close(self):
         """
-            Cleans some variables before the object is freed. _close is called
+            Cleans some variables before the object is freed. close is called
             manually from connection whenever a handler is going to be deleted.
         """
         self._methods = {}
