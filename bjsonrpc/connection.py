@@ -758,7 +758,7 @@ class Connection(object): # TODO: Split this class in simple ones
             write_data  = item.get("write_data")
             if write_data: item["result"] = self.write_now(write_data)
             if event: event.set()
-        print "Exited writing thread."
+        if self._debug_socket: print "Writing thread finished."
             
             
     def write(self, data, timeout = None):
