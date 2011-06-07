@@ -9,7 +9,7 @@
 __version__ = '0.2'
 """Version number of the library as a string with the format X.Y"""
 
-__release__ = '0.2.0'
+__release__ = '0.2.1'
 """Release number of the library as a string with the format X.Y.Z"""
 
 

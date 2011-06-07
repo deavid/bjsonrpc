@@ -34,7 +34,7 @@ from distutils.core import setup
 
 setup(
     name = 'bjsonrpc',
-    version = '0.2.0',
+    version = '0.2.1',
     description = 'Asynchronous Bidirectional JSON-RPC protocol implementation over TCP/IP',
     long_description = """
         *bjsonrpc* is a implementation of the well-known JSON-RPC protocol
@@ -44,10 +44,9 @@ setup(
     """,
     author = 'David Martinez Marti',
     author_email = 'deavidsedice@gmail.com',
-    url = 'http://deavid.github.com/bjsonrpc',
-    download_url = 'http://github.com/deavid/bjsonrpc/tarball/master',
+    url = 'http://bjsonrpc.wordpress.com/',
     classifiers = [
-        "Development Status :: 4 - Beta",
+        "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
         "License :: DFSG approved",
         "License :: OSI Approved :: BSD License",
