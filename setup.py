@@ -55,6 +55,7 @@ setup(
         "Programming Language :: Python :: 2",
         "Programming Language :: Python :: 2.5",
         "Programming Language :: Python :: 2.6",
+        "Topic :: Internet",
         "Topic :: Communications",
         "Topic :: Software Development :: Libraries :: Python Modules",
         "Topic :: Software Development :: Object Brokering",
