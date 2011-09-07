@@ -346,7 +346,7 @@ class Connection(object): # TODO: Split this class in simple ones
         if hasattr(obj, 'get_method'): 
             return self._dump_remoteobject(obj)
             
-        raise TypeError("Python object %s laks a 'get_method' and "
+        raise TypeError("Python object %s lacks a 'get_method' and "
             "is not serializable!" % repr(obj))
 
     def _dump_functionreference(self, obj):
