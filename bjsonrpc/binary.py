@@ -37,7 +37,7 @@ import quopri, base64, hashlib, zlib, binascii
 
 class BinaryData(object):
     digest = {
-        'crc32' : None, # TODO: Add CRC32 from zlib
+        'crc32' : lambda x: binascii.unhexlify("%08x" % (zlib.crc32(x) & 0xFFFFFFFF)), 
         'md5' : lambda x: hashlib.md5(x).digest() ,
         'sha1' : lambda x: hashlib.sha1(x).digest() ,
         'sha224' : lambda x: hashlib.sha224(x).digest() ,
@@ -74,12 +74,13 @@ class BinaryData(object):
             raise ValueError, "Encoding name not known: %s" % repr(encoding)
         if algorithm not in cls.digest:
             raise ValueError, "Digest algorithm name not known: %s" % repr(algorithm)
-        if not length.startswith("len"):
-            raise ValueError, "Length does not start with 'len': %s" % repr(length)
-        try:
-            length = int(length[3:])
-        except ValueError:
-            raise ValueError, "Non-numeric length: %s" % repr(length[3:])
+        if length:
+            if not length.startswith("len"):
+                raise ValueError, "Length does not start with 'len': %s" % repr(length)
+            try:
+                length = int(length[3:])
+            except ValueError:
+                raise ValueError, "Non-numeric length: %s" % repr(length[3:])
         
         data_digest = cls.digest[algorithm](data)
         encoded_digest = cls.encode[encoding](data_digest)

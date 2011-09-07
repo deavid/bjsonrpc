@@ -60,17 +60,18 @@ import yaml
 
 #x = BinaryData(random_data,encoding="base64")
 #x = BinaryData(lorem_ipsum,encoding="zlib-base64")
-x = BinaryData(lorem_ipsum,encoding="base64")
+#x = BinaryData(lorem_ipsum,encoding="base64")
 #x = BinaryData(random_data,encoding="base64",digest="sha224:base64:len4",dump_mode="short")
 #x = BinaryData(random_data,encoding="base64",digest="sha224:base64:len4",dump_mode="standard")
+x = BinaryData(lorem_ipsum[:100],encoding="quopri",digest="sha1:base64:")
 print yaml.dump(x.format())
 dumped = json.dumps(x.dump(),separators = (',', ':'))
 print dumped
 dlist = list(dumped)
-dlist[25]="a"
+#dlist[25]="a" # Error in the message to test CRC.
 dumped="".join(dlist)
 loaded = BinaryData(jsonobj=json.loads(dumped))
-print yaml.dump(loaded.format())
+
 
 
 
