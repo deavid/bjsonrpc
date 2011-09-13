@@ -43,6 +43,8 @@ from bjsonrpc import bjsonrpc_options
 import bjsonrpc.jsonlib as json
 import select
 
+SCK_SZ=2**11
+
 class RemoteObject(object):
     """
         Represents a object in the server-side (or client-side when speaking from
@@ -230,8 +232,8 @@ class Connection(object): # TODO: Split this class in simple ones
         self.call = Proxy(self, sync_type=0)
         self.method = Proxy(self, sync_type=1)
         self.notify = Proxy(self, sync_type=2)
-        self._wbuffer = []
-        self.write_lock = threading.RLock()
+        self._wbuffer = ""
+        self.write_lock = threading.Lock()
         self.read_lock = threading.RLock()
         self.getid_lock = threading.Lock()
         self.reading_event = threading.Event()
@@ -679,11 +681,12 @@ class Connection(object): # TODO: Split this class in simple ones
             if self._debug_socket: 
                 print "<:%d:" % len(data), data[:130]
             
-            self._wbuffer += list(str(data + '\n'))
+            self._wbuffer += data + '\n'
             sbytes = 0
             while len(self._wbuffer) > 0:
                 try:
-                    sbytes = self._sck.send("".join(self._wbuffer))
+                    select.select([],[self._sck],[],30)
+                    sbytes = self._sck.send(self._wbuffer)
                 except IOError:
                     print "Read socket error: IOError (timeout: %s)" % (
                         repr(self._sck.gettimeout())  )
@@ -698,7 +701,7 @@ class Connection(object): # TODO: Split this class in simple ones
                     raise
                 if sbytes == 0: 
                     break
-                self._wbuffer[0:sbytes] = []
+                self._wbuffer = self._wbuffer[sbytes:]
             if len(self._wbuffer):
                 print "warn: %d bytes left in write buffer" % len(self._wbuffer)
             return len(self._wbuffer)
@@ -807,25 +810,15 @@ class Connection(object): # TODO: Split this class in simple ones
         while pos == -1:
             data = ''
             try:
-                data = self._sck.recv(2048)
+                select.select([self._sck],[],[],30)
+                data = self._sck.recv(SCK_SZ)
             except IOError, inst:
-                print "Read socket error: IOError (timeout: %s)" % (
+                print "-Read socket error: IOError (timeout: %s)" % (
                     repr(self._sck.gettimeout())  )
                 print inst.args
-                val = inst.args[0]
-                if val == 11: # Res. Temp. not available.
-                    if self._sck.gettimeout() == 0: # if it was too fast
-                        self._sck.settimeout(5)
-                        continue
-                        #time.sleep(0.5)
-                        #retry += 1
-                        #if retry < 10:
-                        #    print "Retry ", retry
-                        #    continue
-                #print traceback.format_exc(0)
                 return ''
             except socket.error, inst:
-                print "Read socket error: socket.error (timeout: %s)" % (
+                print "+Read socket error: socket.error (timeout: %s)" % (
                     repr(self._sck.gettimeout())  )
                 print inst.args
                 #print traceback.format_exc(0)
@@ -835,12 +828,20 @@ class Connection(object): # TODO: Split this class in simple ones
             if not data:
                 raise EofError(len(streambuffer))
             #print "readbuf+:",repr(data)
+            oldlen = len(streambuffer)
             streambuffer += data
-            pos = streambuffer.find('\n')
+            pos = data.find('\n')
+            if pos!=-1: pos += oldlen
 
         self._buffer = streambuffer[pos + 1:]
         streambuffer = streambuffer[:pos]
         #print "read:", repr(buffer)
+        p1 = streambuffer.find('\n')
+        if p1 != -1 and p1 != len(streambuffer)-1:
+            print "\\n found:", p1, len(streambuffer)
+            print repr(streambuffer)
+            print repr(self._buffer)
+            raise AssertionError
         return streambuffer
         
     def serve(self):

@@ -32,16 +32,11 @@
 
 """
 
-print "starting ... random"
 import random, sys
-print "starting ... time"
 import time
-print "starting ... simplejson"
 import simplejson
-print "starting ... bsonjrpc"
 sys.path.insert(0,"..")
 import bjsonrpc
-print "ready."
 
 from bjsonrpc.handlers import BaseHandler
 
@@ -49,72 +44,47 @@ class MyHandler(BaseHandler):
     def notify(self,text):
         print "Notify:", text
         
+port = 10123
+host = "127.0.0.1"
+if sys.argv:
+    n = 0
+    try: 
+        n = int(sys.argv[2])
+    except Exception:
+        pass
+    if n > 1024: port = n
+    h = ""
+    try: 
+        h = sys.argv[1]
+    except Exception:
+        pass
+    if len(h) > 4: host = h
 
 
-
-conn = bjsonrpc.connect(host="127.0.0.1",port=10123,handler_factory=MyHandler)
+print host, port
+conn = bjsonrpc.connect(host=host,port=port,handler_factory=MyHandler)
 
 def benchmark():
-    print conn.call.echo('Hello World!')
-    total = 0
-    count = 0
-    valuecount = 500
-    start = time.time()
-    prev = start
-    for i in range(valuecount):
-        randval = i #random.uniform(-100,100)
-        total += randval
-        count += 1
-        conn.notify.addvalue(randval)
-        new = time.time()
-        if new - prev > 2: 
-            print "%d/%d" % (i+1, valuecount)
-            prev = new
-
-    rtotal, rcount = conn.method.gettotal(), conn.method.getcount()
-    print total,count
-    print rtotal.value, rcount.value
-
-    end = time.time()
-    lapse = float(end-start)
-    print "Notify Total: %.2fs   %.2f reg/s" % (lapse, valuecount/lapse)
-    
-    
-    valuecount = 250
-    start = time.time()
-    prev = start
-    values = []
-    for i in range(valuecount):
-        values.append(conn.method.getrandom())
-        new = time.time()
-        if new - prev > 2: 
-            print "%d/%d" % (i+1, valuecount)
-            prev = new
-
-    print sum([x.value for x in values])
-    end = time.time()
-    lapse = float(end-start)
-    print "Method Total: %.2fs   %.2f reg/s" % (lapse, valuecount/lapse)
-    
-
-    valuecount = 100
-    start = time.time()
-    values = []
-    prev = start
-    for i in range(valuecount):
-        values.append(conn.call.getrandom())
-        new = time.time()
-        if new - prev > 2: 
-            print "%d/%d" % (i+1, valuecount)
-            prev = new
-
-    print sum(values)
-    end = time.time()
-    lapse = float(end-start)
-    print "Call Total: %.2fs   %.2f reg/s" % (lapse, valuecount/lapse)
-    
-    print 
-    raw_input("press enter to exit.")
+    demo_text = "Hello World!"
+    total = 20
+    for i in range(total):
+        demo_text += demo_text
+        total2 = int(150 / (i+10) + 1)
+        t1 = time.time()
+        for n in range(total2):
+            v = conn.call.lenecho(demo_text)
+        t2 = time.time()
+        delta = (t2-t1) / float(total2)
+        bytes = len(v)
+        kbytes = bytes / 1024.0
+        mbytes = kbytes / 1024.0
+        kbytespersec = bytes / 1024.0 / delta
+        if mbytes > 1:
+            print "%d/%d*%d: %.2f MB in %.3fs at %.2fkB/s" % (i+1,total, total2, mbytes, delta,kbytespersec)
+        elif kbytes > 10:
+            print "%d/%d*%d: %.1f kB in %.3fs at %.2fkB/s" % (i+1,total, total2, kbytes, delta,kbytespersec)
+        else:
+            print "%d/%d*%d: %d bytes in %.3fs at %.2fkB/s" % (i+1,total, total2, bytes, delta,kbytespersec)
 
 benchmark()
 

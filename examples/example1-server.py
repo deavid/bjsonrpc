@@ -136,16 +136,36 @@ class MyHandler(BaseHandler):
         #print self._methods 
         print string
         return string
+        
+    def lenecho(self, string):
+        print len(string)
+        return string
 
 import threading
 def thread1():  
     time.sleep(0.2)  
-    conn = bjsonrpc.connect(host="127.0.0.1",port=10123)
+    port = 10123
+    if sys.argv:
+        n = 0
+        try: 
+            n = int(sys.argv[1])
+        except Exception:
+            pass
+        if n > 1024: port = n
+    conn = bjsonrpc.connect(host="127.0.0.1",port=port)
     conn.call.echo("Hello world")
     conn.close()
     
+port = 10123
+if sys.argv:
+    n = 0
+    try: 
+        n = int(sys.argv[1])
+    except Exception:
+        pass
+    if n > 1024: port = n
 
-s = bjsonrpc.createserver(handler_factory=MyHandler._factory(domain="yourdomain-dot-com"), port = 10123, host = "0.0.0.0")
+s = bjsonrpc.createserver(handler_factory=MyHandler._factory(domain="yourdomain-dot-com"), port = port, host = "0.0.0.0")
 s.debug_socket(True)
 threading.Thread(target=thread1).start()
 
