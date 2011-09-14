@@ -129,10 +129,10 @@ class BinaryData(object):
         if jsonobj['digest']:
             idx_hash = jsonobj['digest'].rfind(":")
             self.hashtype = jsonobj['digest'][:idx_hash]
-            self.digest = jsonobj['digest'][idx_hash+1:]
-            calc_digest = self.compute_digest(self.data, self.hashtype)
-            if self.digest != calc_digest:
-                raise ValueError, "Data corrupted. Digests doesn't match: source: %s calculated: %s" % (self.digest,calc_digest)
+            remote_digest = jsonobj['digest'][idx_hash+1:]
+            self.digest = self.compute_digest(self.data, self.hashtype)
+            if self.digest != remote_digest:
+                raise ValueError, "Data corrupted. Digests doesn't match: calculated: %s source: %s" % (self.digest,calc_digest)
         
         
     def format(self):

@@ -166,8 +166,8 @@ class Connection(object): # TODO: Split this class in simple ones
         
     """
     _maxtimeout = {
-        'read' : 60,    # default maximum read timeout.
-        'write' : 60,   # default maximum write timeout.
+        'read' : 30,    # default maximum read timeout.
+        'write' : 30,   # default maximum write timeout.
     }
     call = None 
     method = None 
@@ -687,13 +687,14 @@ class Connection(object): # TODO: Split this class in simple ones
                 try:
                     select.select([],[self._sck],[],30)
                     sbytes = self._sck.send(self._wbuffer)
+                    #print "Sent:", sbytes
                 except IOError:
-                    print "Read socket error: IOError (timeout: %s)" % (
+                    print "Write socket error: IOError (timeout: %s)" % (
                         repr(self._sck.gettimeout())  )
                     print traceback.format_exc(0)
                     return ''
                 except socket.error:
-                    print "Read socket error: socket.error (timeout: %s)" % (
+                    print "Write socket error: socket.error (timeout: %s)" % (
                         repr(self._sck.gettimeout())  )
                     print traceback.format_exc(0)
                     return ''

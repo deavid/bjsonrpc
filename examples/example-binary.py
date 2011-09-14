@@ -57,20 +57,67 @@ Donec pellentesque dolor vel ante sollicitudin facilisis. Morbi pharetra, mauris
 
 from bjsonrpc.binary import BinaryData
 import yaml
+import os
+print "Creating random-data . . ."
+big_random_data = os.urandom(1024*1024) # 1Mb pure-random data.
+print "done."
+for i in range(5):
+    big_random_data += big_random_data
+    print "Size: %.2fMB" % (len(big_random_data) / 1024.0 / 1024.0)
+print "Encoding data . . . " 
+x = BinaryData(big_random_data,encoding="zlib-base64")
 
 #x = BinaryData(random_data,encoding="base64")
 #x = BinaryData(lorem_ipsum,encoding="zlib-base64")
 #x = BinaryData(lorem_ipsum,encoding="base64")
 #x = BinaryData(random_data,encoding="base64",digest="sha224:base64:len4",dump_mode="short")
 #x = BinaryData(random_data,encoding="base64",digest="sha224:base64:len4",dump_mode="standard")
-x = BinaryData(lorem_ipsum[:100],encoding="quopri",digest="sha1:base64:")
+#x = BinaryData(lorem_ipsum[:100],encoding="quopri",digest="sha1:base64:")
+print "done." 
 print yaml.dump(x.format())
+print "Dumping data as JSON:"
 dumped = json.dumps(x.dump(),separators = (',', ':'))
-print dumped
-dlist = list(dumped)
-#dlist[25]="a" # Error in the message to test CRC.
-dumped="".join(dlist)
+print "Loading JSON:"
 loaded = BinaryData(jsonobj=json.loads(dumped))
+print "Some tests..."
+assert('\n' not in dumped)
+print "done."
+# ---- Test with a real connection:
+import threading, time
+from bjsonrpc.handlers import BaseHandler
+
+RPC_PORT = 10123
+class MyHandler(BaseHandler):
+    def _setup(self):
+        self.file1 = ""
+    
+    def save_bindata(self, bindata):
+        print "Received bindata, decoding . . ."
+        loaded = BinaryData(jsonobj=bindata)
+        print "done decoding."
+        self.file1 = loaded.data
+        return loaded.digest
+    
+    def stop(self):
+        sys.exit(0)
+        
+def thread1():  
+    time.sleep(0.2)  # -> Wait for server start.
+    print "Conecting to server . . ."
+    conn = bjsonrpc.connect(host="127.0.0.1",port=RPC_PORT)
+    print "Sending data . . ."
+    digest =  conn.call.save_bindata(x.dump())
+    print "Digest:", digest, x.digest
+    print "done. closing conn."
+    conn.notify.stop()
+    conn.close()
+    
+
+print "Testing server/client . . ."
+s = bjsonrpc.createserver(handler_factory=MyHandler, port = RPC_PORT, host = "0.0.0.0")
+s.debug_socket(True)
+threading.Thread(target=thread1).start()
+s.serve()
 
 
 
