@@ -61,7 +61,7 @@ import os
 print "Creating random-data . . ."
 big_random_data = os.urandom(1024*1024) # 1Mb pure-random data.
 print "done."
-for i in range(5):
+for i in range(1):
     big_random_data += big_random_data
     print "Size: %.2fMB" % (len(big_random_data) / 1024.0 / 1024.0)
 print "Encoding data . . . " 
@@ -87,6 +87,12 @@ import threading, time
 from bjsonrpc.handlers import BaseHandler
 
 RPC_PORT = 10123
+RPC_HOST = "127.0.0.1"
+
+if len(sys.argv) == 3:
+    RPC_HOST = sys.argv[1]
+    RPC_PORT = int(sys.argv[2])
+
 class MyHandler(BaseHandler):
     def _setup(self):
         self.file1 = ""
@@ -101,22 +107,44 @@ class MyHandler(BaseHandler):
     def stop(self):
         sys.exit(0)
         
+TH_OPEN = 0
+
 def thread1():  
+    global TH_OPEN
+    TH_OPEN+=1
+    tn = TH_OPEN
+    time.sleep(TH_OPEN)
     time.sleep(0.2)  # -> Wait for server start.
     print "Conecting to server . . ."
-    conn = bjsonrpc.connect(host="127.0.0.1",port=RPC_PORT)
+    conn = bjsonrpc.connect(host=RPC_HOST,port=RPC_PORT)
     print "Sending data . . ."
     digest =  conn.call.save_bindata(x.dump())
     print "Digest:", digest, x.digest
     print "done. closing conn."
-    conn.notify.stop()
+    if tn == TH_OPEN:
+        time.sleep(1)
+        conn.notify.stop()
+    conn.close()
+
+def thread2():  
+    time.sleep(0.2)  # -> Wait for server start.
+    print "::Conecting to server . . ."
+    conn = bjsonrpc.connect(host=RPC_HOST,port=RPC_PORT)
+    for i in range(1000):
+        x1 = BinaryData(random_data,encoding="base64")
+        digest =  conn.call.save_bindata(x1.dump())
+        if i%100==0: print i
     conn.close()
     
 
 print "Testing server/client . . ."
 s = bjsonrpc.createserver(handler_factory=MyHandler, port = RPC_PORT, host = "0.0.0.0")
 s.debug_socket(True)
-threading.Thread(target=thread1).start()
+for i in range(5):
+    threading.Thread(target=thread1).start()
+for i in range(5):
+    threading.Thread(target=thread2).start()
+    
 s.serve()
 
 

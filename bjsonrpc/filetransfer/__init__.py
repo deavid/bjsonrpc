@@ -34,8 +34,27 @@
 """
 
 from bjsonrpc.handlers import BaseHandler
+from bjsonrpc.binary import BinaryData
 
 class FileTransferHandler(BaseHandler):
-    pass
+    def _setup(self, fileobj, mode):
+        assert(mode in ['r','w'])
+        self.fileobj = fileobj
+        self.mode = mode
+        self.encode = None
+        self.decode = None
+        
+    def set_codec(self, codec):
+        self.encode = BinaryData.encode[codec]
+        self.decode = BinaryData.decode[codec]
+        
+    def write(self, data):
+        assert(self.mode == 'w')
+        if self.decode:
+            data = self.decode(data)
+        return self.fileobj.write(data)
     
+    def tell(self):
+        return self.fileobj.tell()
+        
     

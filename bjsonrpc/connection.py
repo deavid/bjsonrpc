@@ -328,6 +328,8 @@ class Connection(object): # TODO: Split this class in simple ones
         # object of unknown type
         if type(obj) is FunctionType or type(obj) is MethodType :
             conn = getattr(obj, '_conn', None)
+            if not conn:
+                raise TypeError("Tried to serialize as JSON a function or method: " + repr(obj))
             if conn != self: 
                 raise TypeError("Tried to serialize as JSON a handler for "
                 "another connection!")
