@@ -39,6 +39,7 @@ from bjsonrpc.proxies import Proxy
 from bjsonrpc.request import Request
 from bjsonrpc.exceptions import EofError, ServerError
 from bjsonrpc import bjsonrpc_options
+from bjsonrpc.binary import BinaryData
 
 import bjsonrpc.jsonlib as json
 import select
@@ -284,6 +285,9 @@ class Connection(object): # TODO: Split this class in simple ones
         if '__remoteobject__' in obj: 
             return RemoteObject(self, obj)
             
+        if '__binarydata__' in obj: 
+            return BinaryData(jsonobj=obj)
+            
         if '__objectreference__' in obj: 
             return self._objects[obj['__objectreference__']]
             
@@ -347,6 +351,9 @@ class Connection(object): # TODO: Split this class in simple ones
         if isinstance(obj, RemoteObject): 
             return self._dump_objectreference(obj)
             
+        if isinstance(obj, BinaryData): 
+            return self._dump_objectbinarydata(obj)
+            
         if hasattr(obj, 'get_method'): 
             return self._dump_remoteobject(obj)
             
@@ -360,6 +367,13 @@ class Connection(object): # TODO: Split this class in simple ones
     def _dump_objectreference(self, obj):
         """ Converts obj to a JSON hinted-class objectreference"""
         return { '__objectreference__' : obj.name }
+        
+    def _dump_objectbinarydata(self, obj):
+        """ Converts obj to a JSON hinted-class binarydata"""
+        dump = obj.dump()
+        dump['__binarydata__'] = obj.dump_mode
+        
+        return dump
         
     def _dump_remoteobject(self, obj):
         """ 

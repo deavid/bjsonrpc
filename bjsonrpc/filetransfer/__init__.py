@@ -50,7 +50,9 @@ class FileTransferHandler(BaseHandler):
         
     def write(self, data):
         assert(self.mode == 'w')
-        if self.decode:
+        if isinstance(data, BinaryData):
+            data = data.data
+        elif self.decode:
             data = self.decode(data)
         return self.fileobj.write(data)
     
@@ -58,3 +60,16 @@ class FileTransferHandler(BaseHandler):
         return self.fileobj.tell()
         
     
+class FileTransferHelper(object):
+    def __init__(self, file_transfer_handler, codec):
+        self.fth = file_transfer_handler
+        self.codec = codec
+        
+    def write(self, data):
+        encdata = BinaryData(data, encoding = self.codec)
+        return self.fth.call.write(encdata)
+        
+    def tell(self):
+        return self.fth.call.tell()
+        
+        

@@ -36,7 +36,7 @@ import sys
 sys.path.insert(0,"../") # prefer local version
 import bjsonrpc
 from bjsonrpc.handlers import BaseHandler
-from bjsonrpc.filetransfer import FileTransferHandler
+from bjsonrpc.filetransfer import FileTransferHandler, FileTransferHelper
 from bjsonrpc.binary import BinaryData
 import random
 import time
@@ -73,7 +73,7 @@ class MyHandler(BaseHandler):
     def stop(self):
         sys.exit(0)
 
-import threading, os
+import threading, os, os.path
 
 def thread1():  
     time.sleep(0.2)  
@@ -83,20 +83,33 @@ def thread1():
     try:
         conn.call.echo("Connected!")
         codec = 'base64'
-        fread = open("/home/deavid/Downloads/LeeDrOiD_V3.0.8.2_GB_A2SD.zip","r")
-        ft1 = conn.call.newFileTransfer('w')
-        ft1.call.set_codec(codec)
-        tstart = time.time()
+        filename = "/home/deavid/Downloads/LeeDrOiD_V3.0.8.2_GB_A2SD.zip"
+        fsz = os.path.getsize(filename)
+        fread = open(filename,"r")
+        print "Size: %.2fMb" % (fsz/1024.0/1024.0)
+        fth = FileTransferHelper(conn.call.newFileTransfer('w'), codec)
+        t1 = tstart = time.time()
         while True:
             bindata = fread.read(64*1024)
             if not bindata: break
-            encdata = BinaryData.encode[codec](bindata)
-            ft1.call.write(encdata)
-            if time.time() - tstart > 3:
-                tstart = time.time()
-                print "Pos: %.2f MB" % (ft1.call.tell() / 1024.0 / 1024.0)
+                
+            fth.write(bindata)
+            if time.time() - t1 > 2:
+                t1 = time.time()
+                delta = t1 - tstart
+                pos = fth.tell()
+                posmb = pos  / 1024.0 / 1024.0
+                speedmb = posmb / delta
+                print "Pos: %.2f MB @ %.3fMB/s" % (posmb,speedmb)
     
-        del ft1    
+        t1 = time.time()
+        delta = t1 - tstart
+        pos = fth.tell()
+        posmb = pos  / 1024.0 / 1024.0
+        speedmb = posmb / delta
+        print "-> Size: %.2f MB @ %.3fMB/s" % (posmb,speedmb)
+        del fth
+
     finally:
         conn.notify.stop()
         conn.close()
