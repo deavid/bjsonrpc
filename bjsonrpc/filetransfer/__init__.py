@@ -43,6 +43,12 @@ class FileTransferHandler(BaseHandler):
         self.mode = mode
         self.encode = None
         self.decode = None
+        self.binary_data_codec = "base64"
+        
+    def set_binary_data_codec(self, codec):
+        self.binary_data_codec = codec
+        self.encode = None
+        self.decode = None
         
     def set_codec(self, codec):
         self.encode = BinaryData.encode[codec]
@@ -56,20 +62,55 @@ class FileTransferHandler(BaseHandler):
             data = self.decode(data)
         return self.fileobj.write(data)
     
+    def read(self, size, donotsend = False):
+        assert(self.mode == 'r')
+        data = self.fileobj.read(size)
+        if donotsend: return None
+        if self.encode:
+            encdata = self.encode(data)
+        else:
+            encdata = BinaryData(data, encoding = self.binary_data_codec)
+        return encdata
+    
+    def seekable(self):
+        return self.fileobj.seekable()
+    
     def tell(self):
         return self.fileobj.tell()
         
+    def seek(self,offset, whence=0):
+        return self.fileobj.seek(offset, whence)
+        
     
 class FileTransferHelper(object):
-    def __init__(self, file_transfer_handler, codec):
+    BLOCK_SZ = 64*1024
+    def __init__(self, file_transfer_handler, codec = 'base64'):
         self.fth = file_transfer_handler
         self.codec = codec
+        self.fth.call.set_binary_data_codec(self.codec)
         
     def write(self, data):
         encdata = BinaryData(data, encoding = self.codec)
         return self.fth.call.write(encdata)
         
+    def read(self, size = 0):
+        if size == 0: size = BLOCK_SZ
+        encdata = self.fth.call.read(size)
+        return encdata.data
+        
     def tell(self):
         return self.fth.call.tell()
         
+    def seekable(self):
+        return self.fth.call.seekable()
+        
+    def seek(self, offset, whence = 0):
+        return self.fth.call.seek(offset, whence)
+        
+    def send_file(self, fread):
+        while True:
+            bindata = fread.read(self.BLOCK_SZ)
+            if not bindata: break
+            self.write(bindata)
+    
         
