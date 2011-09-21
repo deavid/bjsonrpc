@@ -60,6 +60,7 @@ class FileTransferHandler(BaseHandler):
             data = data.data
         elif self.decode:
             data = self.decode(data)
+            
         return self.fileobj.write(data)
     
     def read(self, size, donotsend = False):
