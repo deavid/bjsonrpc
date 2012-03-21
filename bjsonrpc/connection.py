@@ -32,6 +32,8 @@
 
 """
 
+import errno
+import logging
 import socket, traceback, sys, threading
 from types import MethodType, FunctionType
 
@@ -42,6 +44,10 @@ from bjsonrpc import bjsonrpc_options
 
 import bjsonrpc.jsonlib as json
 import select
+
+
+_log = logging.getLogger(__name__)
+
 
 class RemoteObject(object):
     """
@@ -406,8 +412,9 @@ class Connection(object): # TODO: Split this class in simple ones
                 try:
                     self._objects[objectname]._shutdown()
                 except Exception:
-                    print "Error when shutting down the object", type(self._objects[objectname]),":"
-                    print traceback.format_exc()
+                    _log.error("Error when shutting down the object %s:",
+                               type(self._objects[objectname]))
+                    _log.debug(traceback.format_exc())
                     
                 del self._objects[objectname]
                 result = None
@@ -432,18 +439,18 @@ class Connection(object): # TODO: Split this class in simple ones
                 if len(funargs) > 40: 
                     funargs = funargs[:37] + "..."
                 
-                print "(%s) In Handler method %s.%s(%s) " % (
+                _log.error("(%s) In Handler method %s.%s(%s) ",
                     req_object.__class__.__module__,
                     req_object.__class__.__name__,
                     req_method, 
                     funargs
                     )
-                print "\n".join([ "%s::%s:%d %s" % (
+                _log.debug("\n".join([ "%s::%s:%d %s" % (
                         filename, fnname, 
                         lineno, srcline  ) 
                     for filename, lineno, fnname, srcline 
-                    in traceback.extract_tb(etb)[1:] ])
-                print "Unhandled error: %s: %s" % (etype.__name__, evalue)
+                    in traceback.extract_tb(etb)[1:] ]))
+                _log.error("Unhandled error: %s: %s", etype.__name__, evalue)
                     
                 del etb
                 if req_id is not None: 
@@ -527,10 +534,10 @@ class Connection(object): # TODO: Split this class in simple ones
                     else:
                         dispatch_item(item)
                 else: # Unknown format :-(
-                    print "Received message with unknown format type:" , type(item)
+                    _log.debug("Received message with unknown format type: %s" , type(item))
                     return False
             except Exception:
-                print traceback.format_exc()
+                _log.debug(traceback.format_exc())
                 return False
             return True
         finally:
@@ -579,7 +586,7 @@ class Connection(object): # TODO: Split this class in simple ones
             try:
                 txtResponse = json.dumps(response, self)
             except Exception, e:
-                print "An unexpected error ocurred when trying to create the message:", repr(e)
+                _log.error("An unexpected error ocurred when trying to create the message: %r", e)
                 response = {
                     'result': None, 
                     'error': "InternalServerError: " + repr(e), 
@@ -590,7 +597,7 @@ class Connection(object): # TODO: Split this class in simple ones
             try:
                 self.write(txtResponse)
             except TypeError:
-                print "response was:", repr(response)
+                _log.debug("response was: %r", response)
                 raise
         return True
     
@@ -647,12 +654,12 @@ class Connection(object): # TODO: Split this class in simple ones
         self.write_thread_semaphore.release() # notify new item.
         item['event'].wait(1)
         if not item['event'].isSet():
-            print "WARN: write thread doesn't process our abort command" 
+            _log.warning("write thread doesn't process our abort command")
         try:
             self.handler._shutdown()
         except Exception:
-            print "Error when shutting down the handler:"
-            print traceback.format_exc()
+            _log.error("Error when shutting down the handler: %s",
+                       traceback.format_exc())
         try:
             self._sck.shutdown(socket.SHUT_RDWR)
         except socket.error:
@@ -677,7 +684,7 @@ class Connection(object): # TODO: Split this class in simple ones
         self.write_lock.acquire()
         try:
             if self._debug_socket: 
-                print "<:%d:" % len(data), data[:130]
+                _log.debug("<:%d: %s", len(data), data[:130])
             
             self._wbuffer += list(str(data + '\n'))
             sbytes = 0
@@ -685,14 +692,14 @@ class Connection(object): # TODO: Split this class in simple ones
                 try:
                     sbytes = self._sck.send("".join(self._wbuffer))
                 except IOError:
-                    print "Read socket error: IOError (timeout: %s)" % (
-                        repr(self._sck.gettimeout())  )
-                    print traceback.format_exc(0)
+                    _log.debug("Read socket error: IOError (timeout: %r)",
+                        self._sck.gettimeout())
+                    _log.debug(traceback.format_exc(0))
                     return ''
                 except socket.error:
-                    print "Read socket error: socket.error (timeout: %s)" % (
-                        repr(self._sck.gettimeout())  )
-                    print traceback.format_exc(0)
+                    _log.debug("Read socket error: socket.error (timeout: %r)",
+                        self._sck.gettimeout())
+                    _log.debug(traceback.format_exc(0))
                     return ''
                 except:
                     raise
@@ -700,7 +707,7 @@ class Connection(object): # TODO: Split this class in simple ones
                     break
                 self._wbuffer[0:sbytes] = []
             if len(self._wbuffer):
-                print "warn: %d bytes left in write buffer" % len(self._wbuffer)
+                _log.warning("%d bytes left in write buffer", len(self._wbuffer))
             return len(self._wbuffer)
         finally:
             self.write_lock.release()
@@ -722,7 +729,7 @@ class Connection(object): # TODO: Split this class in simple ones
         try:
             data = self._readn()
             if len(data) and self._debug_socket: 
-                print ">:%d:" % len(data), data[:130]
+                _log.debug(">:%d: %s", len(data), data[:130])
             return data
         finally:
             self.read_lock.release()
@@ -751,14 +758,15 @@ class Connection(object): # TODO: Split this class in simple ones
             try:
                 item = self.write_thread_queue.pop(0)
             except IndexError: # pop from empty list?
-                print "WARN: write queue was empty??"
+                _log.warning("write queue was empty??")
                 continue
             abort = item.get("abort", False)
             event = item.get("event")
             write_data  = item.get("write_data")
             if write_data: item["result"] = self.write_now(write_data)
             if event: event.set()
-        if self._debug_socket: print "Writing thread finished."
+        if self._debug_socket:
+            _log.debug("Writing thread finished.")
             
             
     def write(self, data, timeout = None):
@@ -802,45 +810,42 @@ class Connection(object): # TODO: Split this class in simple ones
         """
         streambuffer = self._buffer
         pos = streambuffer.find('\n')
-        #print "read..."
+        #_log.debug("read...")
         #retry = 0
         while pos == -1:
             data = ''
             try:
                 data = self._sck.recv(2048)
             except IOError, inst:
-                print "Read socket error: IOError (timeout: %s)" % (
-                    repr(self._sck.gettimeout())  )
-                print inst.args
-                val = inst.args[0]
-                if val == 11: # Res. Temp. not available.
+                _log.debug("Read socket error: IOError%r (timeout: %r)",
+                    inst.args, self._sck.gettimeout())
+                if inst.errno == errno.EAGAIN:
                     if self._sck.gettimeout() == 0: # if it was too fast
                         self._sck.settimeout(5)
                         continue
                         #time.sleep(0.5)
                         #retry += 1
                         #if retry < 10:
-                        #    print "Retry ", retry
+                        #    _log.debug("Retry %s", retry)
                         #    continue
-                #print traceback.format_exc(0)
+                #_log.debug(traceback.format_exc(0))
                 return ''
             except socket.error, inst:
-                print "Read socket error: socket.error (timeout: %s)" % (
-                    repr(self._sck.gettimeout())  )
-                print inst.args
-                #print traceback.format_exc(0)
+                _log.error("Read socket error: socket.error%r (timeout: %r)", 
+                    inst.args, self._sck.gettimeout())
+                #_log.debug(traceback.format_exc(0))
                 return ''
             except:
                 raise
             if not data:
                 raise EofError(len(streambuffer))
-            #print "readbuf+:",repr(data)
+            #_log.debug("readbuf+: %r", data)
             streambuffer += data
             pos = streambuffer.find('\n')
 
         self._buffer = streambuffer[pos + 1:]
         streambuffer = streambuffer[:pos]
-        #print "read:", repr(buffer)
+        #_log.debug("read: %r", buffer)
         return streambuffer
         
     def serve(self):

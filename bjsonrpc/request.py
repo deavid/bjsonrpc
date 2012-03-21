@@ -32,11 +32,16 @@
 
 """
 
+import logging
 from threading import Event
 import traceback
 
 from bjsonrpc.exceptions import ServerError
 import bjsonrpc.jsonlib as json
+
+
+_log = logging.getLogger(__name__)
+
 
 class Request(object):
     """
@@ -118,8 +123,8 @@ class Request(object):
             try:
                 callback(self)
             except Exception, exc:
-                print "Error on callback.", repr(exc)
-                print traceback.format_exc()
+                _log.error("Error on callback: %r", exc)
+                _log.debug(traceback.format_exc())
                 
         self.event_response.set() # helper for threads.
     
