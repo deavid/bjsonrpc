@@ -166,7 +166,7 @@ class BaseHandler(object):
             connections to get the apropiate method object.
         """
         if name not in self._methods:
-            raise ServerError("Unknown method %s" % repr(name))
+            raise ServerError("Unknown method '%s'" % name)
             
         return self._methods[name]
         

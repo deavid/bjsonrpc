@@ -31,9 +31,11 @@
     POSSIBILITY OF SUCH DAMAGE.
 
 """
+# Local changes: 
 
 import errno
 import logging
+import inspect
 import socket, traceback, sys, threading
 from types import MethodType, FunctionType
 
@@ -86,6 +88,11 @@ class RemoteObject(object):
             Asynchronous Proxy. It forwards your calls to it to the other end and
             inmediatelly returns a *request.Request* instance.
 
+        **pipe**
+            Asynchronous Proxy for "pipe" calls with multiple returns, like
+            method but you can check request.value multiple times, and must
+            call request.close() when you're done.
+
         **notify**
             Notification Proxy. It forwards your calls to it to the other end and
             tells the server to not response even if there's any error in the call.
@@ -97,7 +104,8 @@ class RemoteObject(object):
     name = None 
     call = None 
     method = None 
-    notify = None 
+    notify = None
+    pipe = None
     
     @property
     def connection(self): 
@@ -113,6 +121,7 @@ class RemoteObject(object):
         self.call = Proxy(self._conn, obj=self.name, sync_type=0)
         self.method = Proxy(self._conn, obj=self.name, sync_type=1)
         self.notify = Proxy(self._conn, obj=self.name, sync_type=2)
+        self.pipe = Proxy(self._conn, obj=self.name, sync_type=3)
     
     def __del__(self):
         self._close()
@@ -175,7 +184,8 @@ class Connection(object): # TODO: Split this class in simple ones
     }
     call = None 
     method = None 
-    notify = None 
+    notify = None
+    pipe = None
     
     @classmethod
     def setmaxtimeout(cls, operation, value):
@@ -236,6 +246,7 @@ class Connection(object): # TODO: Split this class in simple ones
         self.call = Proxy(self, sync_type=0)
         self.method = Proxy(self, sync_type=1)
         self.notify = Proxy(self, sync_type=2)
+        self.pipe = Proxy(self, sync_type=3)
         self._wbuffer = []
         self.write_lock = threading.RLock()
         self.read_lock = threading.RLock()
@@ -311,7 +322,13 @@ class Connection(object): # TODO: Split this class in simple ones
         assert(isinstance(request, Request))
         assert(request.request_id not in self._requests)
         self._requests[request.request_id] = request
-    
+
+    def delrequest(self, req_id):
+        """
+            Removes a request to the queue of requests waiting for response.
+        """
+        del self._requests[req_id]
+
     def dump_object(self, obj):
         """
             Helper function to convert classes and functions to JSON objects.
@@ -385,12 +402,40 @@ class Connection(object): # TODO: Split this class in simple ones
             obj.__remoteobjects__[self] = instancename
         return { '__remoteobject__' : instancename }
 
-    def _dispatch_method(self, request):
-        """
-            Processes one request.
-        """
-        # TODO: Simplify this function or split it in small ones.
-        req_id = request.get("id", None)
+    def _format_exception(self, obj, method, args, kw, exc):
+        etype, evalue, etb = exc
+        funargs = ", ".join(
+            [repr(x) for x in args] +  
+            ["%s=%s" % (k, repr(x)) for k, x in kw.iteritems()]
+            )
+        if len(funargs) > 40: 
+            funargs = funargs[:37] + "..."
+                
+        _log.error("(%s) In Handler method %s.%s(%s) ",
+                   obj.__class__.__module__,
+                   obj.__class__.__name__,
+                   method, 
+                   funargs
+            )
+        _log.debug("\n".join([ "%s::%s:%d %s" % (
+            filename, fnname, 
+            lineno, srcline)
+            for filename, lineno, fnname, srcline 
+            in traceback.extract_tb(etb)[1:] ]))
+        _log.error("Unhandled error: %s: %s", etype.__name__, evalue)
+        del etb
+        return '%s: %s' % (etype.__name__, evalue)
+
+    def _dispatch_delete(self, objectname):
+        try:
+            self._objects[objectname]._shutdown()
+        except Exception:
+            _log.error("Error when shutting down the object %s:",
+                       type(self._objects[objectname]))
+            _log.debug(traceback.format_exc())
+        del self._objects[objectname]
+
+    def _extract_params(self, request):
         req_method = request.get("method")
         req_args = request.get("params", [])
         if type(req_args) is dict: 
@@ -398,71 +443,36 @@ class Connection(object): # TODO: Split this class in simple ones
             req_args = []
         else:
             req_kwargs = request.get("kwparams", {})
-            
         if req_kwargs: 
             req_kwargs = dict((str(k), v) for k, v in req_kwargs.iteritems())
-            
+        return req_method, req_args, req_kwargs
+        
+    def _find_object(self, req_method, req_args, req_kwargs):
         if '.' in req_method: # local-object.
             objectname, req_method = req_method.split('.')[:2]
             if objectname not in self._objects: 
                 raise ValueError, "Invalid object identifier"
-                
-            if req_method == '__delete__': 
-                req_object = None
-                try:
-                    self._objects[objectname]._shutdown()
-                except Exception:
-                    _log.error("Error when shutting down the object %s:",
-                               type(self._objects[objectname]))
-                    _log.debug(traceback.format_exc())
-                    
-                del self._objects[objectname]
-                result = None
+            elif req_method == '__delete__':
+                self._dispatch_delete(objectname)
             else:
-                req_object = self._objects[objectname]
+                return self._objects[objectname]
         else:
-            req_object = self.handler
-            
-        if req_object:
-            try:
-                req_function = req_object.get_method(req_method)
-                result = req_function(*req_args, **req_kwargs)
-            except ServerError, exc:
-                if req_id is not None: 
-                    return {'result': None, 'error': '%s' % (exc), 'id': req_id}
-            except Exception:
-                etype, evalue, etb = sys.exc_info()
-                funargs = ", ".join(
-                    [repr(x) for x in req_args] +  
-                    ["%s=%s" % (k, repr(x)) for k, x in req_kwargs.iteritems()]
-                    )
-                if len(funargs) > 40: 
-                    funargs = funargs[:37] + "..."
-                
-                _log.error("(%s) In Handler method %s.%s(%s) ",
-                    req_object.__class__.__module__,
-                    req_object.__class__.__name__,
-                    req_method, 
-                    funargs
-                    )
-                _log.debug("\n".join([ "%s::%s:%d %s" % (
-                        filename, fnname, 
-                        lineno, srcline  ) 
-                    for filename, lineno, fnname, srcline 
-                    in traceback.extract_tb(etb)[1:] ]))
-                _log.error("Unhandled error: %s: %s", etype.__name__, evalue)
-                    
-                del etb
-                if req_id is not None: 
-                    return {
-                        'result': None, 
-                        'error': '%s: %s' % (etype.__name__, evalue), 
-                        'id': req_id
-                        }
+            return self.handler
         
-        if req_id is None: 
-            return None
-        return {'result': result, 'error': None, 'id': req_id}
+    def _find_method(self, req_object, req_method, req_args, req_kwargs):
+        """
+            Finds the method to process one request.
+        """
+        try:
+            req_function = req_object.get_method(req_method)
+            return req_function
+        except ServerError, err:
+            return str(err)
+        except Exception:
+            err = self._format_exception(req_object, req_method,
+                                         req_args, req_kwargs,
+                                         sys.exc_info())
+            return err
 
     def dispatch_until_empty(self):
         """
@@ -524,7 +534,7 @@ class Connection(object): # TODO: Split this class in simple ones
             if not data: 
                 return False 
             try:
-                item = json.loads(data, self)  
+                item = json.loads(data, self)
                 if type(item) is list: # batch call
                     for i in item: 
                         dispatch_item(i)
@@ -556,51 +566,68 @@ class Connection(object): # TODO: Split this class in simple ones
         else:
             return self.dispatch_item_single(item)
         
-    
+    def _send(self, response):
+        txtResponse = None
+        try:
+            txtResponse = json.dumps(response, self)
+        except Exception, e:
+            _log.error("An unexpected error ocurred when trying to create the message: %r", e)
+            response = {
+                'result': None,
+                'error': "InternalServerError: " + repr(e),
+                'id': item['id']
+                }
+            txtResponse = json.dumps(response, self)
+        try:
+            self.write(txtResponse)
+        except TypeError:
+            _log.debug("response was: %r", response)
+            raise
+
+    def _send_response(self, item, response):
+        if item['id']:
+            ret = { 'result': response, 'error': None, 'id': item['id'] }
+            self._send(ret)
+
+    def _send_error(self, item, err):
+        if item['id']:
+            ret = { 'result': None, 'error': err, 'id': item['id'] }
+            self._send(ret)
+
     def dispatch_item_single(self, item):
         """
             Given a JSON item received from socket, determine its type and 
             process the message.
         """
         assert(type(item) is dict)
-        response = None
-        if 'id' not in item: 
-            item['id'] = None
+        item.setdefault('id', None)
         
-        if 'method' in item: 
-            response = self._dispatch_method(item)
-        elif 'result' in item: 
+        if 'method' in item:
+            method, args, kw = self._extract_params(item)
+            obj = self._find_object(method, args, kw)
+            if obj is None: return
+            fn = self._find_method(obj, method, args, kw)
+            try:
+                if inspect.isgeneratorfunction(fn):
+                    for response in fn(*args, **kw):
+                        self._send_response(item, response)
+                elif callable(fn):
+                    self._send_response(item, fn(*args, **kw))
+                elif fn:
+                    self._send_error(item, fn)
+            except ServerError, exc:
+                self._send_error(item, str(exc))
+            except Exception:
+                err = self._format_exception(obj, method, args, kw,
+                                             sys.exc_info())
+                self._send_error(item, err)
+        elif 'result' in item:
             assert(item['id'] in self._requests)
             request = self._requests[item['id']]
-            del self._requests[item['id']]
             request.setresponse(item)
         else:
-            response = {
-                'result': None, 
-                'error': "Unknown format", 
-                'id': item['id']
-                }
-            
-        if response is not None:
-            txtResponse = None
-            try:
-                txtResponse = json.dumps(response, self)
-            except Exception, e:
-                _log.error("An unexpected error ocurred when trying to create the message: %r", e)
-                response = {
-                    'result': None, 
-                    'error': "InternalServerError: " + repr(e), 
-                    'id': item['id']
-                    }
-                txtResponse = json.dumps(response, self)
-                
-            try:
-                self.write(txtResponse)
-            except TypeError:
-                _log.debug("response was: %r", response)
-                raise
+            self._send_error(item, 'Unknown format')
         return True
-    
     
     def proxy(self, sync_type, name, args, kwargs):
         """
@@ -610,13 +637,14 @@ class Connection(object): # TODO: Split this class in simple ones
           = 0 .. call method, wait, get response.
           = 1 .. call method, inmediate return of object.
           = 2 .. call notification and exit.
+          = 3 .. call method, inmediate return of non-auto-close object.
           
         """
        
         data = {}
         data['method'] = name
 
-        if sync_type in [0, 1]: 
+        if sync_type in [0, 1, 3]: 
             data['id'] = self.get_id()
             
         if len(args) > 0: 
@@ -633,13 +661,11 @@ class Connection(object): # TODO: Split this class in simple ones
             return None
                     
         req = Request(self, data)
-        if sync_type == 2: 
-            return None
-            
-        if sync_type == 1: 
-            return req
-        
-        return req.value
+        if sync_type == 0: 
+            return req.value
+        if sync_type == 3:
+            req.auto_close = False
+        return req
 
     def close(self):
         """

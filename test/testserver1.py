@@ -21,13 +21,18 @@ class ServerHandler(BaseHandler):
     
     def getabc(self, a=None, b=None, c=None):
         return (a, b, c)
-        
+
+    def pipe(self, arr):
+        for element in arr:
+            yield element
 
 server = None
 def start():
     global server,  server_thread
     if server: return
     server = createserver(handler_factory=ServerHandler)
+    server.debug_socket(True)
+    server.debug_dispatch(True)
     server_thread = threading.Thread(target=server.serve)
     server_thread.daemon = True
     server_thread.start()
@@ -47,5 +52,6 @@ def stop(c):
     
     server = None
     server_thread = None
-    
-    
+
+
+# import sys; sys.path.insert(0, "../"); import testserver1; testserver1.start()

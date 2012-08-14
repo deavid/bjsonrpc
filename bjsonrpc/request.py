@@ -32,6 +32,7 @@
 
 """
 
+import Queue
 import logging
 from threading import Event
 import traceback
@@ -41,7 +42,6 @@ import bjsonrpc.jsonlib as json
 
 
 _log = logging.getLogger(__name__)
-
 
 class Request(object):
     """
@@ -61,9 +61,9 @@ class Request(object):
             
         Attributes:
         
-        **response**
-            JSON Object of the response, as a dictionary. If no response has
-            been received, this is None. 
+        **responses**
+            Queue of JSON Objects of the response, each as a dictionary. If
+            no response has been received, this is empty. 
             
         **event_response**
             A threading.Event object, which is set to true when a response has 
@@ -84,15 +84,18 @@ class Request(object):
     def __init__(self, conn, request_data):
         self.conn = conn
         self.data = request_data
-        self.response = None
+        self.responses = Queue.Queue()
+        # TODO: Now that we have a Queue, do we need an Event (and a cv)?
         self.event_response = Event()
         self.callbacks = []
         self.thread_wait = self.event_response.wait
         self.request_id = None
+        self.auto_close = False
         if 'id' in self.data: 
             self.request_id = self.data['id']
             
         if self.request_id:
+            self.auto_close = True
             self.conn.addrequest(self)
             
         data = json.dumps(self.data, self.conn)
@@ -104,9 +107,9 @@ class Request(object):
             Method thet checks if there's a response or not.
             Returns True if there it is or False if it haven't arrived yet.
         """
-        if self.response is not None: return True
+        if not self.responses.empty(): return True
         self.conn.dispatch_until_empty()
-        return self.response is not None
+        return not self.responses.empty()
         
     def setresponse(self, value):
         """
@@ -118,7 +121,7 @@ class Request(object):
             **value**
                 Value (JSON decoded) received from socket.
         """
-        self.response = value
+        self.responses.put(value)
         for callback in self.callbacks: 
             try:
                 callback(self)
@@ -127,6 +130,8 @@ class Request(object):
                 _log.debug(traceback.format_exc())
                 
         self.event_response.set() # helper for threads.
+        if self.auto_close:
+            self.close()
     
     def wait(self):
         """
@@ -136,12 +141,26 @@ class Request(object):
         #if self.response is None:
         #    self.conn.read_ensure_thread()
             
-        while self.response is None:
-            self.conn.read_and_dispatch(condition=lambda: self.response is None)
+        while self.responses.empty():
+            self.conn.read_and_dispatch(condition=lambda: self.responses.empty())
     
     def __call__(self):
         return self.value
-        
+
+    def __iter__(self):
+        return self
+
+    def next(self):
+        return self.value
+
+    def close(self):
+        reqid, self.request_id, self.auto_close = self.request_id, None, False
+        if reqid:
+            self.conn.delrequest(reqid)
+
+    def __del__(self):
+        self.close()
+    
     @property
     def value(self):
         """
@@ -157,8 +176,8 @@ class Request(object):
                 
         """
         self.wait()
-        
-        if self.response.get('error', None) is not None:
-            raise ServerError(self.response['error'])
-
-        return self.response['result']        
+        response = self.responses.get()
+        err = response.get('error', None)
+        if err is not None:
+            raise ServerError(err)
+        return response['result']

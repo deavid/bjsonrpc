@@ -15,6 +15,7 @@ class TestJSONBasics(unittest.TestCase):
         """
         testserver1.start()
         self.conn = bjsonrpc.connect()
+
         
     def tearDown(self):
         """
@@ -127,9 +128,9 @@ class TestJSONBasics(unittest.TestCase):
     def test_commonerrors(self):
         rcall = self.conn.call 
         self.assertRaises(ServerError,  rcall.myfun) # inexistent method
-        self.assertRaises(ServerError,  rcall.add) # not enough parameters
+        self.assertRaises(ServerError,  rcall.add2) # not enough parameters
         self.assertRaises(ServerError,  rcall.getabc, j=32) # "j" parameter unknown
-        self.assertRaises(ServerError,  rcall.add,  2, 3, 4,) # too parameters
+        self.assertRaises(ServerError,  rcall.add2,  2, 3, 4,) # too parameters
         
     def test_methodNparams(self):
         """
@@ -146,10 +147,19 @@ class TestJSONBasics(unittest.TestCase):
         remote_total = sum([ m.value for m in lmethods ])
         self.assertEqual(total,  remote_total, "Server FAILED to sum N params remotely handling paralell queries")
         
-        
-        
-        
-        
+    def test_pipe(self):
+        """
+            Test a "pipe" call, which yields multiple results
+        """
+        rcall = self.conn.call 
+        result = rcall.getabc(a=1, b=2, c=3)
+        rpipe = self.conn.pipe
+        presult = rpipe.pipe(result)
+        check = [presult.value for i in range(len(result))]
+        self.assertEqual(result, check, "Server FAILED to pipe result back")
+        presult.close()
+
+         
         
         
 
