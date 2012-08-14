@@ -182,3 +182,9 @@ class Server(object):
             except Exception:
                 pass
 
+    @property
+    def socket(self): 
+        """
+            public property that holds the internal listener socket used.
+        """
+        return self._lstsck
