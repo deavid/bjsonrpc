@@ -1,4 +1,5 @@
-OVERVIEW
+Overview
+========
 
 A "pipe" method is a special kind of method that returns multiple values. The server can send as many responses and errors as it wants, all with the same ID as the original pipe call.
 
@@ -6,7 +7,8 @@ Since JSON-RPC is bidirectional, the same thing could be done by sending notific
 
 The motivation for building this wasn't so much that it's generically useful--although I believe that it is--but that I'm migrating a product (TuneUp) from a custom JSON-RPC-like mechanism to JSON-RPC, and it makes extensive use of pipes in its current implementation.
 
-PROTOCOL
+Protocol
+========
 
 At the protocol level, pipes look just like regular method calls, except that they may have any number of responses or errors to a single request, instead of exactly one. There is no way to distinguish between pipe calls and method calls; it's up to the application (on both sides). This is somewhat analogous to the fact that a Python function that yields looks just like a regular function; it's up to the caller to know that it has to iterate over responses instead of expecting a single response.
 
@@ -16,23 +18,30 @@ Pipes do not depend on bidirectional JSON-RPC. In fact, that's one of the motiva
 
 Pipes should work fine over HTTP, although I haven't tried that yet (because I don't have a need).
 
-COMPLETION
+Completion
+==========
 
 There is no way to mark that a pipe is done. The server side simply stops send responses. If the client is still expecting them, it will wait forever. (Also, the client side has to close the pipe, or the Request object stays alive. Also note that there's also no way for a client to "drop" a pipe before the server is done, except by dropping the entire connection, of course.)
 
 There are two reasonable ways for the client to know that a pipe is done.
 
-PRE-DETERMINED COMPLETION
+Pre-Determined completion
+-------------------------
 
 If the client knows in advance how many responses to expect, you don't need any kind of message. For example, often the client sends an array of parameters, and gets exactly one response or error per parameter. The client can then just close the pipe after it's gotten a response for each.
 
-COMPLETION MESSAGE
+Completion message
+------------------
 
 If the number of responses isn't known in advance, you have to build some kind of mechanism in at the application level to let the client know that the pipe is done.
 
 (In TuneUp, this is generally done by including an optional "status" member of each response, with an optional "completed" boolean in the status; if completed is true, the pipe is done. The status also often include "processed" and "total" to allow the client to, e.g., show a progress bar.)
 
-SERVER
+Use
+===
+
+Server
+------
 
 To define a pipe message on the server side, just create a generator function instead of a normal function:
 
@@ -44,7 +53,8 @@ To define a pipe message on the server side, just create a generator function in
 	        yield time.time()
 	        time.sleep(delay)
 
-CLIENT
+Client
+------
 
 To call a pipe on the client side, you must use the "pipe" async call, which returns a Response object just as for a normal "method" call, but each time you read the value property, it gives you a new response (or blocks for a new one). For example:
 
@@ -68,7 +78,8 @@ A pipe can also be used as an iterator:
 
 (However, as compact and readable as that looks, note that it doesn't handle closing the pipe. You could write an islice_then_close function if you were doing this kind of thing frequently.)
 
-IMPLEMENTATION
+Implementation
+==============
 
 To make bjsonrpc handle this, Connect.dispatch_item_single no longer calls a monolithic _dispatch_method function that just returns a dict to send the client; instead, it calls _find_method, which can return:
 
@@ -86,7 +97,8 @@ There is no equivalent to the simple sync "call" mechanism for pipe methods, bec
 
 Note that most services that implement pipes will probably want to use bjsonrpc's 'threaded' option--that isn't strictly-speaking necessary, but the way bjsonrpc works, any service that takes a long time to respond to any method, or needs to do anything truly asynchronous, pretty much needs threads, and it's hard to imagine a good reason for pipes that wasn't either long-lasting or asynchronous.
 
-FUTURE
+Future
+======
 
 It might be nice if the pipe were a context manager on its own, like a file, but I haven't added that.
 
