@@ -230,7 +230,7 @@ class Connection(object): # TODO: Split this class in simple ones
     def __init__(self, sck, address = None, handler_factory = None):
         self._debug_socket = False
         self._debug_dispatch = False
-        self._buffer = ''
+        self._buffer = b''
         self._sck = sck
         self._address = address
         self._handler = handler_factory 
@@ -247,7 +247,7 @@ class Connection(object): # TODO: Split this class in simple ones
         self.method = Proxy(self, sync_type=1)
         self.notify = Proxy(self, sync_type=2)
         self.pipe = Proxy(self, sync_type=3)
-        self._wbuffer = []
+        self._wbuffer = b''
         self.write_lock = threading.RLock()
         self.read_lock = threading.RLock()
         self.getid_lock = threading.Lock()
@@ -406,7 +406,7 @@ class Connection(object): # TODO: Split this class in simple ones
         etype, evalue, etb = exc
         funargs = ", ".join(
             [repr(x) for x in args] +  
-            ["%s=%s" % (k, repr(x)) for k, x in kw.iteritems()]
+            ["%s=%r" % (k, kw[k]) for k in kw]
             )
         if len(funargs) > 40: 
             funargs = funargs[:37] + "..."
@@ -444,14 +444,14 @@ class Connection(object): # TODO: Split this class in simple ones
         else:
             req_kwargs = request.get("kwparams", {})
         if req_kwargs: 
-            req_kwargs = dict((str(k), v) for k, v in req_kwargs.iteritems())
+            req_kwargs = dict((str(k), req_kwargs[k]) for k in req_kwargs)
         return req_method, req_args, req_kwargs
         
     def _find_object(self, req_method, req_args, req_kwargs):
         if '.' in req_method: # local-object.
             objectname, req_method = req_method.split('.')[:2]
             if objectname not in self._objects: 
-                raise ValueError, "Invalid object identifier"
+                raise ValueError("Invalid object identifier")
             elif req_method == '__delete__':
                 self._dispatch_delete(objectname)
             else:
@@ -466,7 +466,7 @@ class Connection(object): # TODO: Split this class in simple ones
         try:
             req_function = req_object.get_method(req_method)
             return req_function
-        except ServerError, err:
+        except ServerError as err:
             return str(err)
         except Exception:
             err = self._format_exception(req_object, req_method,
@@ -498,7 +498,7 @@ class Connection(object): # TODO: Split this class in simple ones
             if not self.read_and_dispatch(timeout=0): 
                 break
             count += 1
-            newline_idx = self._buffer.find('\n')
+            newline_idx = self._buffer.find(b'\n')
         return count
             
     def read_and_dispatch(self, timeout=None, thread=True, condition=None):
@@ -570,7 +570,7 @@ class Connection(object): # TODO: Split this class in simple ones
         txtResponse = None
         try:
             txtResponse = json.dumps(response, self)
-        except Exception, e:
+        except Exception as e:
             _log.error("An unexpected error ocurred when trying to create the message: %r", e)
             response = {
                 'result': None,
@@ -615,7 +615,7 @@ class Connection(object): # TODO: Split this class in simple ones
                     self._send_response(item, fn(*args, **kw))
                 elif fn:
                     self._send_error(item, fn)
-            except ServerError, exc:
+            except ServerError as exc:
                 self._send_error(item, str(exc))
             except Exception:
                 err = self._format_exception(obj, method, args, kw,
@@ -709,30 +709,34 @@ class Connection(object): # TODO: Split this class in simple ones
         assert('\n' not in data)
         self.write_lock.acquire()
         try:
+            try:
+                data = data.encode('utf-8')
+            except AttributeError:
+                pass
             if self._debug_socket: 
-                _log.debug("<:%d: %s", len(data), data[:130])
-            
-            self._wbuffer += list(str(data + '\n'))
+                _log.debug("<:%d: %s", len(data), data.decode('utf-8')[:130])
+
+            self._wbuffer += data + b'\n'
             sbytes = 0
-            while len(self._wbuffer) > 0:
+            while self._wbuffer:
                 try:
-                    sbytes = self._sck.send("".join(self._wbuffer))
+                    sbytes = self._sck.send(self._wbuffer)
                 except IOError:
                     _log.debug("Read socket error: IOError (timeout: %r)",
                         self._sck.gettimeout())
                     _log.debug(traceback.format_exc(0))
-                    return ''
+                    return 0
                 except socket.error:
                     _log.debug("Read socket error: socket.error (timeout: %r)",
                         self._sck.gettimeout())
                     _log.debug(traceback.format_exc(0))
-                    return ''
+                    return 0
                 except:
                     raise
                 if sbytes == 0: 
                     break
-                self._wbuffer[0:sbytes] = []
-            if len(self._wbuffer):
+                self._wbuffer = self._wbuffer[sbytes:]
+            if self._wbuffer:
                 _log.warning("%d bytes left in write buffer", len(self._wbuffer))
             return len(self._wbuffer)
         finally:
@@ -755,8 +759,8 @@ class Connection(object): # TODO: Split this class in simple ones
         try:
             data = self._readn()
             if len(data) and self._debug_socket: 
-                _log.debug(">:%d: %s", len(data), data[:130])
-            return data
+                _log.debug(">:%d: %s", len(data), data.decode('utf-8')[:130])
+            return data.decode('utf-8')
         finally:
             self.read_lock.release()
             
@@ -835,14 +839,14 @@ class Connection(object): # TODO: Split this class in simple ones
             Internal function which reads from socket waiting for a newline
         """
         streambuffer = self._buffer
-        pos = streambuffer.find('\n')
+        pos = streambuffer.find(b'\n')
         #_log.debug("read...")
         #retry = 0
         while pos == -1:
-            data = ''
+            data = b''
             try:
                 data = self._sck.recv(2048)
-            except IOError, inst:
+            except IOError as inst:
                 _log.debug("Read socket error: IOError%r (timeout: %r)",
                     inst.args, self._sck.gettimeout())
                 if inst.errno == errno.EAGAIN:
@@ -855,19 +859,19 @@ class Connection(object): # TODO: Split this class in simple ones
                         #    _log.debug("Retry %s", retry)
                         #    continue
                 #_log.debug(traceback.format_exc(0))
-                return ''
-            except socket.error, inst:
+                return b''
+            except socket.error as inst:
                 _log.error("Read socket error: socket.error%r (timeout: %r)", 
                     inst.args, self._sck.gettimeout())
                 #_log.debug(traceback.format_exc(0))
-                return ''
+                return b''
             except:
                 raise
             if not data:
                 raise EofError(len(streambuffer))
             #_log.debug("readbuf+: %r", data)
             streambuffer += data
-            pos = streambuffer.find('\n')
+            pos = streambuffer.find(b'\n')
 
         self._buffer = streambuffer[pos + 1:]
         streambuffer = streambuffer[:pos]

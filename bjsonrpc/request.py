@@ -32,7 +32,10 @@
 
 """
 
-import Queue
+try:
+    from Queue import Queue
+except ImportError:
+    from queue import Queue
 import logging
 from threading import Event
 import traceback
@@ -84,7 +87,7 @@ class Request(object):
     def __init__(self, conn, request_data):
         self.conn = conn
         self.data = request_data
-        self.responses = Queue.Queue()
+        self.responses = Queue()
         # TODO: Now that we have a Queue, do we need an Event (and a cv)?
         self.event_response = Event()
         self.callbacks = []
@@ -125,7 +128,7 @@ class Request(object):
         for callback in self.callbacks: 
             try:
                 callback(self)
-            except Exception, exc:
+            except Exception as exc:
                 _log.error("Error on callback: %r", exc)
                 _log.debug(traceback.format_exc())
                 
@@ -150,8 +153,11 @@ class Request(object):
     def __iter__(self):
         return self
 
-    def next(self):
+    def __next__(self):
         return self.value
+
+    def next(self):
+        return self.__next__()
 
     def close(self):
         reqid, self.request_id, self.auto_close = self.request_id, None, False

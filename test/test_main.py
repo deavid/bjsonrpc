@@ -6,7 +6,6 @@ from bjsonrpc.exceptions import ServerError
 
 import testserver1
 import math
-from types import ListType
 
 class TestJSONBasics(unittest.TestCase):
     def setUp(self):
@@ -105,7 +104,7 @@ class TestJSONBasics(unittest.TestCase):
         """
         rcall = self.conn.call 
         result = rcall.getabc()
-        self.assertTrue(isinstance(result, ListType),"JSON library should convert tuples to lists!")
+        self.assertTrue(isinstance(result, list),"JSON library should convert tuples to lists!")
         
         
     def test_kwparams(self):
