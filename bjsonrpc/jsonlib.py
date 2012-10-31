@@ -36,7 +36,7 @@ try:
 except ImportError:
     import json as j
 except ImportError:
-    print "FATAL: No suitable json library found!"
+    print("FATAL: No suitable json library found!")
     raise
 from pprint import pprint
 
