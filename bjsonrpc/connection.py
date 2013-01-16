@@ -182,6 +182,11 @@ class Connection(object): # TODO: Split this class in simple ones
         'read' : 60,    # default maximum read timeout.
         'write' : 60,   # default maximum write timeout.
     }
+    
+    _SOCKET_COMM_ERRORS = (errno.ECONNABORTED, errno.ECONNREFUSED, 
+                        errno.ECONNRESET, errno.ENETDOWN,
+                        errno.ENETRESET, errno.ENETUNREACH)
+
     call = None 
     method = None 
     notify = None
@@ -859,6 +864,9 @@ class Connection(object): # TODO: Split this class in simple ones
                         #    _log.debug("Retry %s", retry)
                         #    continue
                 #_log.debug(traceback.format_exc(0))
+                if inst.errno in self._SOCKET_COMM_ERRORS:
+                    raise EofError(len(streambuffer))                
+                
                 return b''
             except socket.error as inst:
                 _log.error("Read socket error: socket.error%r (timeout: %r)", 
