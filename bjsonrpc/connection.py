@@ -854,7 +854,7 @@ class Connection(object): # TODO: Split this class in simple ones
             except IOError as inst:
                 _log.debug("Read socket error: IOError%r (timeout: %r)",
                     inst.args, self._sck.gettimeout())
-                if inst.errno == errno.EAGAIN:
+                if inst.errno in (errno.EAGAIN, errno.EWOULDBLOCK):
                     if self._sck.gettimeout() == 0: # if it was too fast
                         self._sck.settimeout(5)
                         continue
