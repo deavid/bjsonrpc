@@ -32,7 +32,7 @@
 
 """
 
-
+from __future__ import print_function
 import sys
 sys.path.insert(0,"../") # prefer local version
 import bjsonrpc
@@ -43,7 +43,7 @@ import time
 
 class MyHandler(BaseHandler):
     def notify(self,text):
-        print "Notify:", text
+        print("Notify:\n%s" % text)
         
 
 
@@ -51,7 +51,7 @@ class MyHandler(BaseHandler):
 conn = bjsonrpc.connect(host="127.0.0.1",port=10123,handler_factory=MyHandler)
 
 def benchmark():
-    print conn.call.echo('Hello World!')
+    print(conn.call.echo('Hello World!'))
     total = 0
     count = 0
     valuecount = 10000
@@ -63,12 +63,12 @@ def benchmark():
         conn.notify.addvalue(randval)
 
     rtotal, rcount = conn.method.gettotal(), conn.method.getcount()
-    print total,count
-    print rtotal.value, rcount.value
+    print('%f\n%i' % (total, count))
+    print(rtotal.value, rcount.value)
 
     end = time.time()
     lapse = float(end-start)
-    print "Notify Total: %.2fs   %.2f reg/s" % (lapse, valuecount/lapse)
+    print("Notify Total: %.2fs   %.2f reg/s" % (lapse, valuecount/lapse))
     
     
     valuecount = 3000
@@ -77,10 +77,10 @@ def benchmark():
     for i in range(valuecount):
         values.append(conn.method.getrandom())
 
-    print sum([x.value for x in values])
+    print(sum([x.value for x in values]))
     end = time.time()
     lapse = float(end-start)
-    print "Method Total: %.2fs   %.2f reg/s" % (lapse, valuecount/lapse)
+    print("Method Total: %.2fs   %.2f reg/s" % (lapse, valuecount/lapse))
     
 
     valuecount = 500
@@ -89,10 +89,10 @@ def benchmark():
     for i in range(valuecount):
         values.append(conn.call.getrandom())
 
-    print sum(values)
+    print(sum(values))
     end = time.time()
     lapse = float(end-start)
-    print "Call Total: %.2fs   %.2f reg/s" % (lapse, valuecount/lapse)
+    print("Call Total: %.2fs   %.2f reg/s" % (lapse, valuecount/lapse))
     
 
     

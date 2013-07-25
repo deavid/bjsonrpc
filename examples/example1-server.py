@@ -32,6 +32,7 @@
 
 """
 
+from __future__ import print_function
 import sys
 sys.path.insert(0,"../") # prefer local version
 import bjsonrpc
@@ -101,8 +102,8 @@ class MyHandler(BaseHandler):
     
     def __init__(self, connection, *args, **kwargs):
         BaseHandler.__init__(self,connection)
-        print args
-        print kwargs
+        print(args)
+        print(kwargs)
         
     def _setup(self):
         self.value_count = 0
@@ -134,7 +135,7 @@ class MyHandler(BaseHandler):
         #print self._addr 
         #print self._conn 
         #print self._methods 
-        print string
+        print(string)
         return string
 
 import threading
