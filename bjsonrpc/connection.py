@@ -590,12 +590,12 @@ class Connection(object): # TODO: Split this class in simple ones
             raise
 
     def _send_response(self, item, response):
-        if item['id']:
+        if item.get('id') is not None:
             ret = { 'result': response, 'error': None, 'id': item['id'] }
             self._send(ret)
 
     def _send_error(self, item, err):
-        if item['id']:
+        if item.get('id') is not None:
             ret = { 'result': None, 'error': err, 'id': item['id'] }
             self._send(ret)
 
