@@ -690,15 +690,16 @@ class Connection(object): # TODO: Split this class in simple ones
             sbytes = 0
             while len(self._wbuffer) > 0:
                 try:
-                    sbytes = self._sck.send("".join(self._wbuffer))
-                except IOError:
-                    _log.debug("Read socket error: IOError (timeout: %r)",
-                        self._sck.gettimeout())
+                    sckwritebuf = ("".join(self._wbuffer))[:4098]
+                    sbytes = self._sck.send(sckwritebuf)
+                except IOError, e:
+                    _log.debug("Write socket error: IOError (timeout: %r) %r",
+                        self._sck.gettimeout(), e)
                     _log.debug(traceback.format_exc(0))
                     return ''
-                except socket.error:
-                    _log.debug("Read socket error: socket.error (timeout: %r)",
-                        self._sck.gettimeout())
+                except socket.error, e:
+                    _log.debug("Write socket error: socket.error (timeout: %r) %r",
+                        self._sck.gettimeout(),e )
                     _log.debug(traceback.format_exc(0))
                     return ''
                 except:
