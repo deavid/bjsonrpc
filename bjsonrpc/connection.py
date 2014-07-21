@@ -727,12 +727,12 @@ class Connection(object): # TODO: Split this class in simple ones
                 try:
                     sbytes = self._sck.send(self._wbuffer)
                 except IOError:
-                    _log.debug("Read socket error: IOError (timeout: %r)",
+                    _log.debug("Write socket error: IOError (timeout: %r)",
                         self._sck.gettimeout())
                     _log.debug(traceback.format_exc(0))
                     return 0
                 except socket.error:
-                    _log.debug("Read socket error: socket.error (timeout: %r)",
+                    _log.debug("Write socket error: socket.error (timeout: %r)",
                         self._sck.gettimeout())
                     _log.debug(traceback.format_exc(0))
                     return 0
