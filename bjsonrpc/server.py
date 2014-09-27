@@ -56,12 +56,13 @@ class Server(object):
             connections. Should be an inherited class of *bjsonrpc.handlers.BaseHandler*
             
     """
-    def __init__(self, lstsck, handler_factory):
+    def __init__(self, lstsck, handler_factory, http):
         self._lstsck = lstsck
         self._handler = handler_factory
         self._debug_socket = False
         self._debug_dispatch = False
         self._serve = True
+        self._http = http
     
     def stop(self):
         """
@@ -146,7 +147,8 @@ class Server(object):
             
                     conn = Connection(
                             sck = clientsck, address = clientaddr, 
-                            handler_factory = self._handler
+                            handler_factory = self._handler,
+                            http = self._http
                             )
                     connidx[clientsck.fileno()] = conn
                     conn._debug_socket = self._debug_socket

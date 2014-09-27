@@ -21,7 +21,8 @@ __all__ = [
 ]
 
 def createserver(host="127.0.0.1", port=10123, 
-    handler_factory=bjsonrpc.handlers.NullHandler):
+    handler_factory=bjsonrpc.handlers.NullHandler,
+    http=False):
     """
         Creates a *bjson.server.Server* object linked to a listening socket.
         
@@ -56,7 +57,7 @@ def createserver(host="127.0.0.1", port=10123,
 
     sck.bind((host, port))
     sck.listen(3) 
-    return bjsonrpc.server.Server(sck, handler_factory=handler_factory)
+    return bjsonrpc.server.Server(sck, handler_factory=handler_factory, http=http)
         
         
 def connect(host="127.0.0.1", port=10123, 
