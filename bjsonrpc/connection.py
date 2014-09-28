@@ -50,6 +50,28 @@ import select
 
 _log = logging.getLogger(__name__)
 
+from BaseHTTPServer import BaseHTTPRequestHandler
+from email.message import Message
+
+class HTTPRequest(BaseHTTPRequestHandler):
+    def __init__(self, req):
+        req.readline = req.read
+        self.rfile = req
+        self.raw_requestline = req.read_line()
+        self.error_code = self.error_message = None
+        self.parse_request()
+
+    def send_error(self, code, message):
+        self.error_code = code
+        self.error_message = message
+
+    def read (self):
+        l = int(self.headers.get('content-length', 0))
+        while len(self.rfile._buffer) < l:
+            self.rfile._buffer += self.rfile._sck.recv(len(self.rfile._buffer)+l)
+        rv = self.rfile._buffer[:l]
+        self.rfile._buffer = self.rfile._buffer[l:]
+        return rv
 
 class RemoteObject(object):
     """
@@ -232,13 +254,14 @@ class Connection(object): # TODO: Split this class in simple ones
         return cls._maxtimeout[operation]
     
     
-    def __init__(self, sck, address = None, handler_factory = None):
+    def __init__(self, sck, address = None, handler_factory = None, http=False):
         self._debug_socket = False
         self._debug_dispatch = False
         self._buffer = b''
         self._sck = sck
         self._address = address
         self._handler = handler_factory 
+        self._http = http
         self.connection_status = "open"
         if self._handler: 
             self.handler = self._handler(self)
@@ -535,7 +558,11 @@ class Connection(object): # TODO: Split this class in simple ones
             else:
                 dispatch_item = self.dispatch_item_single
             
-            data = self.read(timeout=timeout)
+            if self._http:
+                r = HTTPRequest(self)
+                data = r.read()
+            else:
+                data = self.read(timeout=timeout)
             if not data: 
                 return False 
             try:
@@ -721,7 +748,16 @@ class Connection(object): # TODO: Split this class in simple ones
             if self._debug_socket: 
                 _log.debug("<:%d: %s", len(data), data.decode('utf-8')[:130])
 
-            self._wbuffer += data + b'\n'
+            if self._http:
+                msg = Message()
+                msg.add_header('Content-Transfer-Encoding', '8bit')
+                msg.add_header('Content-Type', 'application/json-rpc')
+                msg.add_header('Content-Length', str(len(data)))
+                msg.set_payload(data, charset='utf-8')
+                self._wbuffer += 'HTTP/1.0 200 OK\n'+msg.as_string()
+                print self._wbuffer
+            else:
+                self._wbuffer += data + b'\n'
             sbytes = 0
             while self._wbuffer:
                 try:
