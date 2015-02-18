@@ -136,6 +136,11 @@ class MyHandler(BaseHandler):
         #print self._methods 
         print string
         return string
+    
+    def test_call(self, *args):
+        for i,arg in enumerate(args):
+            print i, repr(arg)
+            
 
 import threading
 def thread1():  

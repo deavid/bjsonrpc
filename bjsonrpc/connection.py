@@ -50,6 +50,10 @@ import select
 
 _log = logging.getLogger(__name__)
 
+class ResponseValue(object):
+    value = None
+    def __init__(self, value = None):
+        self.value = value
 
 class RemoteObject(object):
     """
@@ -459,10 +463,10 @@ class Connection(object): # TODO: Split this class in simple ones
                 raise ValueError("Invalid object identifier")
             elif req_method == '__delete__':
                 self._dispatch_delete(objectname)
-            else:
-                return self._objects[objectname]
+                return ResponseValue(True), req_method
+            return self._objects[objectname], req_method
         else:
-            return self.handler
+            return self.handler, req_method
         
     def _find_method(self, req_object, req_method, req_args, req_kwargs):
         """
@@ -609,8 +613,13 @@ class Connection(object): # TODO: Split this class in simple ones
         
         if 'method' in item:
             method, args, kw = self._extract_params(item)
-            obj = self._find_object(method, args, kw)
-            if obj is None: return
+            obj, method = self._find_object(method, args, kw)
+            if isinstance(obj, ResponseValue): 
+                self._send_response(item, obj.value)
+                return True
+            if obj is None: 
+                self._send_error(item, "Unexpected code flow, expected object, not none.")
+                return
             fn = self._find_method(obj, method, args, kw)
             try:
                 if inspect.isgeneratorfunction(fn):
