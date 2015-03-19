@@ -22,7 +22,7 @@ __all__ = [
 
 def createserver(host="127.0.0.1", port=10123, 
     handler_factory=bjsonrpc.handlers.NullHandler,
-    http=False):
+    sock=None, http=False):
     """
         Creates a *bjson.server.Server* object linked to a listening socket.
         
@@ -52,16 +52,15 @@ def createserver(host="127.0.0.1", port=10123,
             
         Check :ref:`bjsonrpc.server` documentation
     """
-    sck = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sck.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    if sock is None:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    sock.bind((host, port))
+    sock.listen(3) 
+    return bjsonrpc.server.Server(sock, handler_factory=handler_factory, http=http)
 
-    sck.bind((host, port))
-    sck.listen(3) 
-    return bjsonrpc.server.Server(sck, handler_factory=handler_factory, http=http)
-        
-        
 def connect(host="127.0.0.1", port=10123, 
-    handler_factory=bjsonrpc.handlers.NullHandler):
+    sock=None, handler_factory=bjsonrpc.handlers.NullHandler):
     """
         Creates a *bjson.connection.Connection* object linked to a connected
         socket.
@@ -89,11 +88,7 @@ def connect(host="127.0.0.1", port=10123,
             conn = bjsonrpc.connect("rpc.host.net")
             print conn.call.some_method_in_server_side()
     """
-    sck = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sck.connect((host, port))
-    return bjsonrpc.connection.Connection(sck, 
-        handler_factory=handler_factory)
-        
-
-
-
+    if sock is None:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.connect((host, port))
+    return bjsonrpc.connection.Connection(sock, handler_factory=handler_factory)

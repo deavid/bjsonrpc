@@ -41,6 +41,7 @@ from bjsonrpc.main import createserver, connect
 
 import bjsonrpc.server
 import bjsonrpc.connection
+import bjsonrpc.serialsocket
 import bjsonrpc.request
 import bjsonrpc.handlers
 import bjsonrpc.proxies
