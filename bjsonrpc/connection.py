@@ -571,7 +571,7 @@ class Connection(object): # TODO: Split this class in simple ones
                     for i in item: 
                         dispatch_item(i)
                 elif type(item) is dict: # std call
-                    if 'result' in item:
+                    if 'result' in item or 'error' in item:
                         self.dispatch_item_single(item)
                     else:
                         dispatch_item(item)
@@ -653,7 +653,7 @@ class Connection(object): # TODO: Split this class in simple ones
                 err = self._format_exception(obj, method, args, kw,
                                              sys.exc_info())
                 self._send_error(item, err)
-        elif 'result' in item:
+        elif 'result' in item or 'error' in item:
             assert(item['id'] in self._requests)
             request = self._requests[item['id']]
             request.setresponse(item)
