@@ -9,7 +9,7 @@
 
 """
 
-import serial
+#import serial
 
 class SerialSocket:
     def __init__(self, serial_port):

@@ -49,8 +49,11 @@ import select
 
 
 _log = logging.getLogger(__name__)
+try:
+    from BaseHTTPServer import BaseHTTPRequestHandler
+except ImportError:
+    from http.server import BaseHTTPRequestHandler
 
-from BaseHTTPServer import BaseHTTPRequestHandler
 from email.message import Message
 
 class HTTPRequest(BaseHTTPRequestHandler):
@@ -755,7 +758,7 @@ class Connection(object): # TODO: Split this class in simple ones
                 msg.add_header('Content-Length', str(len(data)))
                 msg.set_payload(data, charset='utf-8')
                 self._wbuffer += 'HTTP/1.0 200 OK\n'+msg.as_string()
-                print self._wbuffer
+                #print(self._wbuffer)
             else:
                 self._wbuffer += data + b'\n'
             sbytes = 0
